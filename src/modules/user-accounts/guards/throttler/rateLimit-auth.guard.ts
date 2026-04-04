@@ -17,8 +17,8 @@ export class PostRateLimitGuard extends ThrottlerGuard {
 
   protected getTracker(req: Record<string, any>): Promise<string> {
     // трекаем по IP
-    return Promise.resolve(req.ip as string);
-    // return Promise.resolve('global-ip');
+    // return Promise.resolve(req.ip as string);
+    return Promise.resolve('global-ip');
     // const ip =
     //   req.headers['x-forwarded-for'] ||
     //   req.connection?.remoteAddress ||
