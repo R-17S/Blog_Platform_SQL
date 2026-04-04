@@ -128,12 +128,9 @@ export class AuthController {
     >(new RefreshTokensCommand(user));
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      // secure: true,
-      // sameSite: 'strict',
-      // path: '/auth/refresh-token',
-      secure: false, // обязательно false для тестов
-      sameSite: 'lax', // strict ломает supertest
-      path: '/auth',
+      secure: true,
+      sameSite: 'strict',
+      path: '/auth/refresh-token',
     });
     return { accessToken };
   }
