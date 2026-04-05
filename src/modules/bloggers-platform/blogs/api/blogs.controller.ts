@@ -17,7 +17,6 @@ import { BlogsQueryRepository } from '../infrastructure/query/blogs.query-reposi
 import { CreateBlogDto } from '../dto/create-blog.dto';
 import { UpdateBlogDto } from '../dto/update-blog.dto';
 import { BlogsRepository } from '../infrastructure/blogs.repository';
-import { CurrentUserId } from '../../../../core/decorators/current-user-id.decorator';
 import { PostInputQuery } from '../../posts/api/input-dto/get-posts-query-params.input-dto';
 import {
   PostsViewPaginated,
@@ -34,7 +33,9 @@ import { BasicAuthGuard } from '../../../user-accounts/guards/basic/basic-auth.g
 import { JwtOptionalAuthGuard } from '../../../user-accounts/guards/bearer/jwt-optional-auth.guard';
 import { ExtractUserIfExistsFromRequest } from '../../../user-accounts/guards/decorators/param/extract-user-if-exists-from-request.decorator';
 import { UserContextDto } from '../../../user-accounts/guards/dto/user-context.dto';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @Controller('blogs')
 export class BlogsController {
   constructor(

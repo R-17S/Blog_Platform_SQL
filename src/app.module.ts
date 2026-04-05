@@ -40,7 +40,7 @@ import { PostRateLimitGuard } from './modules/user-accounts/guards/throttler/rat
     ThrottlerModule.forRoot({
       throttlers: [
         {
-          ttl: 10,
+          ttl: 10000,
           limit: 5,
         },
       ],

@@ -38,7 +38,9 @@ import { UpdateLikeStatusDto } from '../../../../core/dto/update-like-status.dto
 import { UpdatePostLikeStatusCommand } from '../application/usecases/update-post-like-status-use.case';
 import { JwtOptionalAuthGuard } from '../../../user-accounts/guards/bearer/jwt-optional-auth.guard';
 import { ExtractUserIfExistsFromRequest } from '../../../user-accounts/guards/decorators/param/extract-user-if-exists-from-request.decorator';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @Controller('posts')
 export class PostsController {
   constructor(

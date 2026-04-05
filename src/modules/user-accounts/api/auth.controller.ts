@@ -22,7 +22,6 @@ import { EmailResendingDto } from './input-dto/emailResending.input-dto';
 import { AuthService } from '../application/auth.service';
 import { MeViewDto } from './view-dto/users.view-dto';
 import { AuthQueryRepository } from '../infrastructure/query/auth.query-repository';
-import { PostRateLimitGuard } from '../guards/throttler/rateLimit-auth.guard';
 import type { UserDocument } from '../domain/user.entity';
 import type { Request, Response } from 'express';
 import { PasswordRecoveryCommand } from '../application/usecases/users/password-recovery.usecase';
@@ -36,9 +35,9 @@ import { JwtRefreshAuthGuard } from '../guards/bearer/jwtRefresh-auth.guard';
 import { RefreshTokensCommand } from '../application/usecases/refresh-token.usecase';
 import { UserCookiesDto } from '../guards/dto/user-cookies.dto';
 import { LogoutUserCommand } from '../application/usecases/logout-user.usecase';
+import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
 
 @Controller('auth')
-// @UseGuards(PostRateLimitGuard)
 export class AuthController {
   constructor(
     //private usersService: UsersService,
@@ -71,6 +70,7 @@ export class AuthController {
     return { accessToken };
   }
 
+  @SkipThrottle()
   @ApiBearerAuth()
   @Get('me')
   @UseGuards(JwtAuthGuard)
@@ -111,6 +111,7 @@ export class AuthController {
     return this.commandBus.execute(new ResendRegistrationCommand(dto.email));
   }
 
+  @SkipThrottle()
   @Post('refresh-token')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtRefreshAuthGuard)
@@ -135,6 +136,7 @@ export class AuthController {
     return { accessToken };
   }
 
+  @SkipThrottle()
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtRefreshAuthGuard)

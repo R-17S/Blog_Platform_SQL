@@ -8,12 +8,16 @@ import { DomainExceptionCode } from '../domain-exception-codes';
 import { ErrorResponseBody } from './error-response-body.type';
 import { Response, Request } from 'express';
 import { CoreConfig } from '../../core.config';
+import { ThrottlerException } from '@nestjs/throttler';
 
 //Все ошибки
 @Catch()
 export class AllHttpExceptionsFilter implements ExceptionFilter {
   constructor(private coreConfig: CoreConfig) {}
   catch(exception: any, host: ArgumentsHost): void {
+    if (exception instanceof ThrottlerException) {
+      throw exception;
+    }
     //ctx нужен, чтобы получить request и response (express). Это из документации, делаем по аналогии
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();

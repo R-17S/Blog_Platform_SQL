@@ -18,8 +18,10 @@ import { BasicAuthGuard } from '../guards/basic/basic-auth.guard';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreateUserCommand } from '../application/usecases/admins/create-user.usecase';
 import { DeleteUserCommand } from '../application/usecases/admins/delete-user.usecase';
+import { SkipThrottle } from '@nestjs/throttler';
 
-@UseGuards(BasicAuthGuard) // можно ставить над классом и все методы контроллера будут требовать BasicAuth.
+@UseGuards(BasicAuthGuard)
+@SkipThrottle() // можно ставить над классом и все методы контроллера будут требовать BasicAuth.
 @Controller('users')
 export class UsersController {
   constructor(

@@ -15,8 +15,10 @@ import { ExtractUserFromRequest } from '../guards/decorators/param/extract-user-
 import { UserCookiesDto } from '../guards/dto/user-cookies.dto';
 import { DeleteAllDevicesExceptCurrentCommand } from '../application/usecases/security-devices/delete-all-devices-except-current.usecase';
 import { DeleteDeviceByIdCommand } from '../application/usecases/security-devices/delete-device-by-id.usecase';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @UseGuards(JwtRefreshAuthGuard)
+@SkipThrottle()
 @Controller('security/devices')
 export class SecurityDevicesController {
   constructor(
