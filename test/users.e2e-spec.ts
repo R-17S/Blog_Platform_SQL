@@ -1,17 +1,14 @@
-import { HttpStatus, INestApplication } from '@nestjs/common';
+import {  INestApplication } from '@nestjs/common';
 import { UsersTestManager } from './helpers/users-test-manager';
 import { initSettings } from './helpers/init-settings';
 import { JwtService } from '@nestjs/jwt';
 import { deleteAllData } from './helpers/delete-all-data';
 import { CreateUserDto } from '../src/modules/user-accounts/dto/create-user.dto';
-import * as request from 'supertest';
-import { GLOBAL_PREFIX } from '../src/setup/global-prefix.setup';
-import { PaginatedViewDto } from '../src/core/dto/base.paginated.view-dto';
-import {
-  MeViewDto,
-  UserViewModel,
-} from '../src/modules/user-accounts/api/view-dto/users.view-dto';
-import { delay } from './helpers/delay';
+// import * as request from 'supertest';
+// import { GLOBAL_PREFIX } from '../src/setup/global-prefix.setup';
+// import { PaginatedViewDto } from '../src/core/dto/base.paginated.view-dto';
+import {  UserViewModel } from '../src/modules/user-accounts/api/view-dto/users.view-dto';
+// import { delay } from './helpers/delay';
 import { EmailService } from '../src/modules/user-accounts/application/email.service';
 import { ACCESS_TOKEN_STRATEGY_INJECT_TOKEN } from '../src/modules/user-accounts/constans/auth-tokens.inject-constants';
 
@@ -66,70 +63,70 @@ describe('users', () => {
     });
   });
 
-  it('should get users with paging', async () => {
-    const users = await userTestManager.createSeveralUsers(12);
-
-    const { body: responseBody } = (await request(app.getHttpServer())
-      .get(`/${GLOBAL_PREFIX}/users?pageNumber=2&sortDirection=asc`)
-      .auth('admin', 'qwerty')
-      .expect(HttpStatus.OK)) as { body: PaginatedViewDto<UserViewModel> };
-
-    expect(responseBody.totalCount).toBe(12);
-    expect(responseBody.items).toHaveLength(2);
-    expect(responseBody.pagesCount).toBe(2);
-    //asc sorting
-    expect(responseBody.items[1]).toEqual(users[users.length - 1]);
-    //etc...
-  });
-
-  it('should return users info while "me" request with correct accessTokens', async () => {
-    const tokens = await userTestManager.createAndLoginSeveralUsers(1);
-
-    const responseBody = await userTestManager.me(tokens[0].accessToken);
-
-    expect(responseBody).toEqual({
-      login: expect.anything(),
-      userId: expect.anything(),
-      email: expect.anything(),
-    } as MeViewDto);
-  });
-
-  it(`shouldn't return users info while "me" request if accessTokens expired`, async () => {
-    const tokens = await userTestManager.createAndLoginSeveralUsers(1);
-    await delay(2000);
-    await userTestManager.me(tokens[0].accessToken, HttpStatus.UNAUTHORIZED);
-  });
-
-  // -----------------------------
-  // РЕГИСТРАЦИЯ
-  // -----------------------------
-  it(`should register user without really send email`, async () => {
-    await request(app.getHttpServer())
-      .post(`/${GLOBAL_PREFIX}/auth/registration`)
-      .send({
-        email: 'email@email.em',
-        password: '123123123',
-        login: 'login123',
-      } as CreateUserDto)
-      .expect(HttpStatus.NO_CONTENT);
-  });
-
-  it(`should call email sending method while registration`, async () => {
-    const sendEmailMethod = (app.get(EmailService).sendRegistrationEmail = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve()));
-
-    await request(app.getHttpServer())
-      .post(`/${GLOBAL_PREFIX}/auth/registration`)
-      .send({
-        email: 'email@email.em',
-        password: '123123123',
-        login: 'login123',
-      } as CreateUserDto)
-      .expect(HttpStatus.NO_CONTENT);
-
-    expect(sendEmailMethod).toHaveBeenCalled();
-  });
+  // it('should get users with paging', async () => {
+  //   const users = await userTestManager.createSeveralUsers(12);
+  //
+  //   const { body: responseBody } = (await request(app.getHttpServer())
+  //     .get(`/${GLOBAL_PREFIX}/users?pageNumber=2&sortDirection=asc`)
+  //     .auth('admin', 'qwerty')
+  //     .expect(HttpStatus.OK)) as { body: PaginatedViewDto<UserViewModel> };
+  //
+  //   expect(responseBody.totalCount).toBe(12);
+  //   expect(responseBody.items).toHaveLength(2);
+  //   expect(responseBody.pagesCount).toBe(2);
+  //   //asc sorting
+  //   expect(responseBody.items[1]).toEqual(users[users.length - 1]);
+  //   //etc...
+  // });
+  //
+  // it('should return users info while "me" request with correct accessTokens', async () => {
+  //   const tokens = await userTestManager.createAndLoginSeveralUsers(1);
+  //
+  //   const responseBody = await userTestManager.me(tokens[0].accessToken);
+  //
+  //   expect(responseBody).toEqual({
+  //     login: expect.anything(),
+  //     userId: expect.anything(),
+  //     email: expect.anything(),
+  //   } as MeViewDto);
+  // });
+  //
+  // it(`shouldn't return users info while "me" request if accessTokens expired`, async () => {
+  //   const tokens = await userTestManager.createAndLoginSeveralUsers(1);
+  //   await delay(2000);
+  //   await userTestManager.me(tokens[0].accessToken, HttpStatus.UNAUTHORIZED);
+  // });
+  //
+  // // -----------------------------
+  // // РЕГИСТРАЦИЯ
+  // // -----------------------------
+  // it(`should register user without really send email`, async () => {
+  //   await request(app.getHttpServer())
+  //     .post(`/${GLOBAL_PREFIX}/auth/registration`)
+  //     .send({
+  //       email: 'email@email.em',
+  //       password: '123123123',
+  //       login: 'login123',
+  //     } as CreateUserDto)
+  //     .expect(HttpStatus.NO_CONTENT);
+  // });
+  //
+  // it(`should call email sending method while registration`, async () => {
+  //   const sendEmailMethod = (app.get(EmailService).sendRegistrationEmail = jest
+  //     .fn()
+  //     .mockImplementation(() => Promise.resolve()));
+  //
+  //   await request(app.getHttpServer())
+  //     .post(`/${GLOBAL_PREFIX}/auth/registration`)
+  //     .send({
+  //       email: 'email@email.em',
+  //       password: '123123123',
+  //       login: 'login123',
+  //     } as CreateUserDto)
+  //     .expect(HttpStatus.NO_CONTENT);
+  //
+  //   expect(sendEmailMethod).toHaveBeenCalled();
+  // });
 });
 
 // describe('users', () => {

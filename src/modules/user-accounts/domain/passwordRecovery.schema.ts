@@ -1,5 +1,3 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-
 @Schema()
 export class PasswordRecovery {
   @Prop({ required: true })

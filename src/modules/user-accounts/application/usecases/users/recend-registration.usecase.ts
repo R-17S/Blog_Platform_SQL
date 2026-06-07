@@ -16,7 +16,6 @@ export class ResendRegistrationUseCase
 {
   constructor(
     private readonly usersRepository: UsersRepository,
-    //private readonly emailService: EmailService,
     private readonly eventBus: EventBus,
   ) {}
   async execute({ email }: ResendRegistrationCommand): Promise<void> {
@@ -30,7 +29,7 @@ export class ResendRegistrationUseCase
       });
     }
 
-    if (user.emailConfirmation.isConfirmed) {
+    if (user.isConfirmed) {
       throw new DomainException({
         code: DomainExceptionCode.BadRequest,
         message: 'Email already confirmed',
@@ -41,10 +40,13 @@ export class ResendRegistrationUseCase
     const newCode = randomUUID();
     const newExpirationDate = add(new Date(), { hours: 24 });
 
-    user.emailConfirmation.confirmationCode = newCode;
-    user.emailConfirmation.expirationDate = newExpirationDate;
+    await this.usersRepository.updateConfirmationCode(
+      user.id,
+      newCode,
+      newExpirationDate,
+    );
 
-    await this.usersRepository.save(user);
+
     this.eventBus.publish(new RegistrationEmailRequestedEvent(email, newCode));
     //await this.emailService.sendRegistrationEmail(email, newCode);
   }

@@ -1,18 +1,31 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Devices, DevicesDocument } from '../../domain/securityDevices.entity';
+import { Inject, Injectable } from '@nestjs/common';
+
+import {  SecurityDeviceSqlEntity } from '../../domain/securityDevices.entity';
 import { DevicesViewModel } from '../../api/view-dto/securityDevices.view-dto';
+import { Pool } from 'pg';
 
 @Injectable()
 export class SecurityDevicesQueryRepository {
-  constructor(
-    @InjectModel(Devices.name)
-    private readonly devicesModel: Model<DevicesDocument>,
-  ) {}
+  constructor(@Inject('PG_POOL') private readonly pool: Pool) {}
 
   async getAllDevices(userId: string): Promise<DevicesViewModel[]> {
-    const devices = await this.devicesModel.find({ userId }).lean();
-    return devices.map((device) => DevicesViewModel.mapToView(device));
+    const result = await this.pool.query<SecurityDeviceSqlEntity>(
+      `
+      SELECT *
+      FROM "SecurityDevices"
+      WHERE "userId" = $1
+      ORDER BY "lastActiveDate" DESC
+      `,
+      [userId],
+    );
+
+    return result.rows.map((device) =>
+      DevicesViewModel.mapToView({
+        ip: device.ip,
+        title: device.title,
+        lastActiveDate: device.lastActiveDate,
+        deviceId: device.deviceId,
+      }),
+    );
   }
 }

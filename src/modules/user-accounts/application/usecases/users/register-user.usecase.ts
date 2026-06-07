@@ -2,13 +2,13 @@ import { CreateUserInputDto } from '../../../api/input-dto/users.input-dto';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { UsersRepository } from '../../../infrastructure/users.repository';
 import { ArgonService } from '../../argon2.service';
-import { InjectModel } from '@nestjs/mongoose';
-import { User } from '../../../domain/user.entity';
-import type { UserModelType } from '../../../domain/user.entity';
+
+
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { randomUUID } from 'node:crypto';
 import { RegistrationEmailRequestedEvent } from '../../../domain/events/registration-email-requested.event';
+import { add } from 'date-fns';
 
 export class RegisterUserCommand {
   constructor(public readonly input: CreateUserInputDto) {}
@@ -21,10 +21,9 @@ export class RegisterUserUseCase
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly argonService: ArgonService,
-    //private readonly emailService: EmailService,
     private readonly eventBus: EventBus,
-    @InjectModel(User.name) private readonly userModel: UserModelType,
   ) {}
+
   async execute({ input }: RegisterUserCommand): Promise<void> {
     const [loginExists, emailExists] = await Promise.all([
       this.usersRepository.findByLogin(input.login),
@@ -47,15 +46,24 @@ export class RegisterUserUseCase
     const passwordHash = await this.argonService.generateHash(input.password);
     const confirmationCode = randomUUID();
 
-    const newUser = this.userModel.createForRegistration(
-      input.login,
-      input.email,
+    const newUser = {
+      id: randomUUID(),
+      login: input.login,
+      email: input.email,
       passwordHash,
       confirmationCode,
-    );
+      confirmationExpiration: add(new Date(), {
+        hours: 1,
+        minutes: 30,
+      }).toISOString(),
+      isConfirmed: false,
+      recoveryCode: null,
+      createdAt: new Date().toISOString(),
+      deletedAt: null,
+    };
     console.log('🔥 [AuthService] user created:', newUser);
 
-    await this.usersRepository.save(newUser);
+    await this.usersRepository.createUser(newUser);
 
     // await this.emailService.sendRegistrationEmail(
     //   input.email,

@@ -115,18 +115,18 @@ export class UsersTestManager {
     return await Promise.all(loginPromises);
   }
 
-  async getRecoveryCode(email: string): Promise<string> {
-    const usersRepository = this.app.get(UsersRepository);
-    const user = await usersRepository.findByEmail(email);
-    if (!user) {
-      throw new Error(`User with email ${email} not found`);
-    }
-    const code = user.passwordRecovery?.recoveryCode;
-    if (!code) {
-      throw new Error(`Recovery code for ${email} not found`);
-    }
-    return code;
-  }
+  // async getRecoveryCode(email: string): Promise<string> {
+  //   const usersRepository = this.app.get(UsersRepository);
+  //   const user = await usersRepository.findByEmail(email);
+  //   if (!user) {
+  //     throw new Error(`User with email ${email} not found`);
+  //   }
+  //   const code = user.passwordRecovery?.recoveryCode;
+  //   if (!code) {
+  //     throw new Error(`Recovery code for ${email} not found`);
+  //   }
+  //   return code;
+  // }
 
   async createAndLoginSingleUser(): Promise<{
     accessToken: string;

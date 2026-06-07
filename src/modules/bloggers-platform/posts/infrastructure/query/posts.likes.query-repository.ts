@@ -1,7 +1,7 @@
 import { PostLike, PostLikeDocument } from '../../domain/post.like-scheme';
-import { InjectModel } from '@nestjs/mongoose';
+
 import { Injectable } from '@nestjs/common';
-import { Model } from 'mongoose';
+
 import { NewestLikeViewModel } from '../../dto/newest-like-view-model';
 import { AggregatedLikesResult } from '../interface/post-aggregated-likes-result';
 import { PostDocument } from '../../domain/post.entity';
