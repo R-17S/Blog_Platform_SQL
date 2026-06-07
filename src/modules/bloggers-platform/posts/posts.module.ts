@@ -1,4 +1,3 @@
-import { MongooseModule } from '@nestjs/mongoose';
 import { Post, PostEntity } from './domain/post.entity';
 import { PostsController } from './api/posts.controller';
 import { PostsRepository } from './infrastructure/posts.repository';

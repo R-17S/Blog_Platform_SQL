@@ -1,7 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { User, UserDocument } from '../../domain/user.entity';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   UsersViewPaginated,
   UserViewModel,
@@ -9,40 +6,54 @@ import {
 import { UserInputQuery } from '../../api/input-dto/get-users-query-params.input-dto';
 import { DomainException } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
+import { Pool } from 'pg';
 
 @Injectable()
 export class UsersQueryRepository {
-  constructor(
-    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-  ) {}
+  constructor(@Inject('PG_POOL') private readonly pool: Pool) {}
 
   async getAllUsers(params: UserInputQuery): Promise<UsersViewPaginated> {
-    const filter: any = {}; //а что тут делать, есть какой то FilterQuery<UserDocument> но он не хочет работать и почему ?
-    //const filter: FilterQuery<UserDocument> = {};
+    const values: any[] = [];
+    let where = `WHERE "deletedAt" IS NULL`;
 
     if (params.searchLoginTerm && params.searchEmailTerm) {
-      filter.$or = [
-        { login: { $regex: params.searchLoginTerm, $options: 'i' } },
-        { email: { $regex: params.searchEmailTerm, $options: 'i' } },
-      ];
+      values.push(`%${params.searchLoginTerm}%`);
+      values.push(`%${params.searchEmailTerm}%`);
+      where += ` AND (login ILIKE $${values.length - 1} OR email ILIKE $${values.length})`;
     } else if (params.searchLoginTerm) {
-      filter.login = { $regex: params.searchLoginTerm, $options: 'i' };
+      values.push(`%${params.searchLoginTerm}%`);
+      where += ` AND login ILIKE $${values.length}`;
     } else if (params.searchEmailTerm) {
-      filter.email = { $regex: params.searchEmailTerm, $options: 'i' };
+      values.push(`%${params.searchEmailTerm}%`);
+      where += ` AND email ILIKE $${values.length}`;
     }
 
-    const [totalCount, users] = await Promise.all([
-      this.userModel.countDocuments(filter),
-      this.userModel
-        .find(filter)
-        .sort(params.SortOptions(params.sortBy))
-        .skip(params.calculateSkip())
-        .limit(params.pageSize)
-        .lean(),
-    ]);
+    const sortBy = params.sortBy ?? 'createdAt';
+    const sortDirection = params.sortDirection === 'asc' ? 'ASC' : 'DESC';
+
+    const offset = params.calculateSkip();
+    const limit = params.pageSize;
+
+    const totalCountQuery = `
+      SELECT COUNT(*) 
+      FROM "Users"
+      ${where}
+    `;
+    const totalCountResult = await this.pool.query(totalCountQuery, values);
+    const totalCount = Number(totalCountResult.rows[0].count);
+
+    const itemsQuery = `
+      SELECT *
+      FROM "Users"
+      ${where}
+      ORDER BY "${sortBy}" ${sortDirection}
+      OFFSET ${offset}
+      LIMIT ${limit}
+    `;
+    const itemsResult = await this.pool.query(itemsQuery, values);
     // console.log(params);
     return UsersViewPaginated.mapToView({
-      items: users.map((user) => UserViewModel.mapToView(user)),
+      items: itemsResult.rows.map((u) => UserViewModel.mapToView(u)),
       page: params.pageNumber,
       pageSize: params.pageSize,
       totalCount,
@@ -50,20 +61,18 @@ export class UsersQueryRepository {
   }
 
   async getUserByIdOrError(id: string): Promise<UserViewModel> {
-    if (!Types.ObjectId.isValid(id)) {
-      throw new DomainException({
-        code: DomainExceptionCode.NotFound,
-        message: 'Post not found',
-      });
-    }
-    const result = await this.userModel
-      .findOne({ _id: id, deletedAt: null }) // фильтруем только "живые" блоги
-      .lean();
-    if (!result)
+    const result = await this.pool.query(
+      `SELECT * FROM "Users" WHERE id = $1 AND "deletedAt" IS NULL`,
+      [id],
+    );
+
+    if (!result.rows[0]) {
       throw new DomainException({
         code: DomainExceptionCode.NotFound,
         message: 'User not found',
       });
-    return UserViewModel.mapToView(result);
+    }
+
+    return UserViewModel.mapToView(result.rows[0]);
   }
 }

@@ -23,7 +23,7 @@ export class ConfirmRegistrationUseCase
       });
     }
 
-    if (user.emailConfirmation.isConfirmed) {
+    if (user.isConfirmed) {
       throw new DomainException({
         code: DomainExceptionCode.BadRequest,
         message: 'Email already confirmed',
@@ -31,7 +31,10 @@ export class ConfirmRegistrationUseCase
       });
     }
 
-    if (user.emailConfirmation.expirationDate < new Date()) {
+    if (
+      user.confirmationExpiration && // какого хрена ? почему confirmationExpiration === null я должен проверять ?
+      new Date(user.confirmationExpiration) < new Date()
+    ) {
       throw new DomainException({
         code: DomainExceptionCode.BadRequest,
         message: 'Confirmation code expired',
@@ -39,9 +42,6 @@ export class ConfirmRegistrationUseCase
       });
     }
 
-    user.emailConfirmation.isConfirmed = true;
-    user.emailConfirmation.confirmationCode = null;
-
-    await this.usersRepository.save(user);
+    await this.usersRepository.confirmUser(user.id);
   }
 }

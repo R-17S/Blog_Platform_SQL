@@ -11,18 +11,17 @@ import {
 } from '@nestjs/common';
 import { CreateUserInputDto } from './input-dto/users.input-dto';
 import { LocalAuthGuard } from '../guards/local/local-auth.guard';
-import { ApiBearerAuth } from '@nestjs/swagger';
+// import { ApiBearerAuth } from '@nestjs/swagger';
 import { ExtractUserFromRequest } from '../guards/decorators/param/extract-user-from-request.decorator';
-import { UserContextDto } from '../guards/dto/user-context.dto';
-import { JwtAuthGuard } from '../guards/bearer/jwt-auth.guard';
+// import { UserContextDto } from '../guards/dto/user-context.dto';
+// import { JwtAuthGuard } from '../guards/bearer/jwt-auth.guard';
 import { PasswordRecoveryDto } from './input-dto/passwordRecovery.input-dto';
 import { NewPasswordDto } from './input-dto/newPassword.input-dto';
 import { RegistrationConfirmationDto } from './input-dto/registrationConfirmation.input-dto';
 import { EmailResendingDto } from './input-dto/emailResending.input-dto';
 import { AuthService } from '../application/auth.service';
-import { MeViewDto } from './view-dto/users.view-dto';
-import { AuthQueryRepository } from '../infrastructure/query/auth.query-repository';
-import type { UserDocument } from '../domain/user.entity';
+// import { MeViewDto } from './view-dto/users.view-dto';
+import type { UserSqlEntity } from '../domain/user.entity';
 import type { Request, Response } from 'express';
 import { PasswordRecoveryCommand } from '../application/usecases/users/password-recovery.usecase';
 import { NewPasswordCommand } from '../application/usecases/users/new-password.usecase';
@@ -35,7 +34,7 @@ import { JwtRefreshAuthGuard } from '../guards/bearer/jwtRefresh-auth.guard';
 import { RefreshTokensCommand } from '../application/usecases/refresh-token.usecase';
 import { UserCookiesDto } from '../guards/dto/user-cookies.dto';
 import { LogoutUserCommand } from '../application/usecases/logout-user.usecase';
-import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -43,7 +42,7 @@ export class AuthController {
     //private usersService: UsersService,
     private readonly commandBus: CommandBus,
     private authService: AuthService,
-    private authQueryRepository: AuthQueryRepository,
+    // private authQueryRepository: AuthQueryRepository,
   ) {}
 
   @Post('login')
@@ -51,7 +50,7 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   async login(
     @Req() req: Request,
-    @ExtractUserFromRequest() user: UserDocument,
+    @ExtractUserFromRequest() user: UserSqlEntity,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ accessToken: string }> {
     //console.log('🔥 [Controller] login called with:', user.id);
@@ -70,13 +69,13 @@ export class AuthController {
     return { accessToken };
   }
 
-  @SkipThrottle()
-  @ApiBearerAuth()
-  @Get('me')
-  @UseGuards(JwtAuthGuard)
-  me(@ExtractUserFromRequest() user: UserContextDto): Promise<MeViewDto> {
-    return this.authQueryRepository.me(user.id);
-  }
+  // @SkipThrottle()
+  // @ApiBearerAuth()
+  // @Get('me')
+  // @UseGuards(JwtAuthGuard)
+  // me(@ExtractUserFromRequest() user: UserContextDto): Promise<MeViewDto> {
+  // return this.authQueryRepository.me(user.id);
+  // }
 
   @Post('password-recovery')
   @HttpCode(HttpStatus.NO_CONTENT)

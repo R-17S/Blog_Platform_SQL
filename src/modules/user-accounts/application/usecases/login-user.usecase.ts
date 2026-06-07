@@ -5,18 +5,17 @@ import {
   REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
 } from '../../constans/auth-tokens.inject-constants';
 import { JwtService } from '@nestjs/jwt';
-import { UserDocument } from '../../domain/user.entity';
+
 import { randomUUID } from 'node:crypto';
-import { InjectModel } from '@nestjs/mongoose';
-import {
-  Devices,
-  type DevicesModelType,
-} from '../../domain/securityDevices.entity';
+
+
 import { SecurityDevicesRepository } from '../../infrastructure/devices.repositories';
+import { UserSqlEntity } from '../../domain/user.entity';
+import { SecurityDeviceSqlEntity } from '../../domain/securityDevices.entity';
 
 export class LoginUserCommand {
   constructor(
-    public readonly user: UserDocument,
+    public readonly user: UserSqlEntity,
     public readonly ip: string,
     public readonly title: string,
   ) {}
@@ -32,46 +31,39 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
     private refreshTokenContext: JwtService,
 
     private readonly securityDevicesRepository: SecurityDevicesRepository,
-    @InjectModel(Devices.name) private readonly devicesModel: DevicesModelType,
   ) {}
 
-  async execute({
-    user,
-    ip,
-    title,
-  }: LoginUserCommand): Promise<{ accessToken: string; refreshToken: string }> {
+  async execute({ user, ip, title }: LoginUserCommand) {
     const deviceId = randomUUID();
-    const userId = user._id.toString();
-    //const lastActiveDate = new Date();
+    const userId = user.id;
 
     const refreshToken = this.refreshTokenContext.sign({
-      id: user._id.toString(),
+      id: userId,
       deviceId,
     });
 
-    const payload = this.refreshTokenContext.decode(refreshToken);
+    const payload = this.refreshTokenContext.decode(refreshToken) as {
+      iat: number;
+    };
     const lastActiveDate = new Date(payload.iat * 1000);
 
-    const newDevices = this.devicesModel.createInstance(
+    const device: SecurityDeviceSqlEntity = {
+      id: randomUUID(),
       userId,
       deviceId,
       ip,
       title,
-      lastActiveDate,
-    );
+      lastActiveDate: lastActiveDate.toISOString(),
+      createdAt: new Date().toISOString(),
+    };
 
-    await this.securityDevicesRepository.save(newDevices);
+    await this.securityDevicesRepository.create(device);
 
     const accessToken = this.accessTokenContext.sign({
-      id: user._id.toString(),
+      id: userId,
       login: user.login,
     });
 
-    // console.log('refreshToken', refreshToken);
-
-    return {
-      accessToken,
-      refreshToken,
-    };
+    return { accessToken, refreshToken };
   }
 }

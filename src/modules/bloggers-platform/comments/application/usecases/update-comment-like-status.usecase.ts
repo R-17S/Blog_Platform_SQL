@@ -1,6 +1,5 @@
 import { LikeStatusTypes } from '../../api/view-dto/comments.view-dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { InjectModel } from '@nestjs/mongoose';
 import { CommentLike } from '../../domain/comment.like-scheme';
 import type { CommentLikeModelType } from '../../domain/comment.like-scheme';
 import { CommentsRepository } from '../../infrastructure/comments.repository';

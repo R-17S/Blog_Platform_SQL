@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserEntity } from './domain/user.entity';
 import { UsersController } from './api/users.controller';
 import { UsersRepository } from './infrastructure/users.repository';
 import { UsersQueryRepository } from './infrastructure/query/users.query-repository';
@@ -13,17 +11,12 @@ import { SecurityDevicesQueryRepository } from './infrastructure/query/devices.q
 import { SecurityDevicesController } from './api/security-devices.controller';
 import { DeleteDeviceByIdUseCase } from './application/usecases/security-devices/delete-device-by-id.usecase';
 import { DeleteAllDevicesExceptCurrentUseCase } from './application/usecases/security-devices/delete-all-devices-except-current.usecase';
-import { Devices, DevicesEntity } from './domain/securityDevices.entity';
+
 import { UserAccountsConfig } from './config/user-accounts.config';
+import { PgModule } from '../../pg.module';
 
 @Module({
-  imports: [
-    CqrsModule,
-    MongooseModule.forFeature([
-      { name: User.name, schema: UserEntity },
-      { name: Devices.name, schema: DevicesEntity },
-    ]),
-  ],
+  imports: [CqrsModule, PgModule],
   controllers: [UsersController, SecurityDevicesController],
   providers: [
     //
