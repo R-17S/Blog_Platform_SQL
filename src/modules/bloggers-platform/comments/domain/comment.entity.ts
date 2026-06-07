@@ -1,3 +1,7 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument, Model } from 'mongoose';
+import { NotFoundException } from '@nestjs/common';
+
 @Schema({ timestamps: true })
 export class Comment {
   @Prop({ required: true })

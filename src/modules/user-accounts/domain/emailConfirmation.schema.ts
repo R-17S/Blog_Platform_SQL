@@ -1,3 +1,5 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+
 @Schema()
 export class EmailConfirmation {
   @Prop({ required: false, type: String }) //default: null

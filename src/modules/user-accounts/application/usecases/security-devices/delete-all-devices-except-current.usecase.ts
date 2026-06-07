@@ -20,10 +20,8 @@ export class DeleteAllDevicesExceptCurrentUseCase
       await this.securityDevicesRepository.findAllByUserId(userId);
     //  Фильтруем все, кроме текущего тут или как то достать только нужные поля из монго?
     const otherDeviceIds = devices
-      .filter(deviceId => deviceId !== currentDeviceId,
-    );
-      //.filter((device) => device.deviceId !== currentDeviceId)
-      //.map((device) => device.deviceId);
+      .filter((device) => device.deviceId !== currentDeviceId)
+      .map((device) => device.deviceId);
 
     await this.securityDevicesRepository.deleteManyByDeviceIds(otherDeviceIds);
   }

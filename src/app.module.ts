@@ -2,10 +2,10 @@ import { configModule } from './config-dynamic-module';
 import { DynamicModule, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-// import { BloggersPlatformModule } from './modules/bloggers-platform/bloggers-platform.module';
+import { BloggersPlatformModule } from './modules/bloggers-platform/bloggers-platform.module';
 import { TestingModule } from './modules/testing/testing.module';
 import { UserAccountsModule } from './modules/user-accounts/user-accounts.module';
-
+import { MongooseModule } from '@nestjs/mongoose';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
@@ -16,13 +16,18 @@ import { CoreModule } from './core/core.module';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { DomainHttpExceptionsFilter } from './core/exceptions/filters/domain-exceptions.filter';
 import { AllHttpExceptionsFilter } from './core/exceptions/filters/all-exceptions.filter';
-import { PgModule } from './pg.module';
+import { PostRateLimitGuard } from './modules/user-accounts/guards/throttler/rateLimit-auth.guard';
 
 @Module({
   imports: [
     configModule,
     CoreModule,
-    PgModule,
+    MongooseModule.forRootAsync({
+      inject: [CoreConfig],
+      useFactory: (coreConfig: CoreConfig) => ({
+        uri: coreConfig.mongoURI,
+      }),
+    }),
     ServeStaticModule.forRootAsync({
       inject: [CoreConfig],
       useFactory: (coreConfig: CoreConfig) => [
@@ -40,7 +45,7 @@ import { PgModule } from './pg.module';
         },
       ],
     }), // окно в секундах // максимум запросов
-    // BloggersPlatformModule,
+    BloggersPlatformModule,
     UserAccountsModule,
     AuthModule,
     EmailModule,

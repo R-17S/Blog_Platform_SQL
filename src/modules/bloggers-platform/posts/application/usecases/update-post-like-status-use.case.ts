@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-
+import { InjectModel } from '@nestjs/mongoose';
 import { PostLike } from '../../domain/post.like-scheme';
 import type { PostLikeModelType } from '../../domain/post.like-scheme';
 import { PostsRepository } from '../../infrastructure/posts.repository';

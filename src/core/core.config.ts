@@ -59,11 +59,6 @@ export class CoreConfig {
     });
     this.port = Number(this.configService.get('PORT'));
     this.mongoURI = this.configService.get('MONGO_URI');
-    console.log(
-      'MONGO_URI from configService:',
-      this.configService.get('MONGO_URI'),
-    );
-    console.log('MONGO_URI from process.env:', process.env.MONGO_URI);
     this.accessTokenSecret = this.configService.get('ACCESS_TOKEN_SECRET');
     this.refreshTokenSecret = this.configService.get('REFRESH_TOKEN_SECRET');
     this.sendInternalServerErrorDetails =
@@ -84,5 +79,3 @@ export class CoreConfig {
     configValidationUtility.validateConfig(this);
   }
 }
-
-

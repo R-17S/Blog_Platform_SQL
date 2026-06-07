@@ -28,7 +28,7 @@ export class DeleteDeviceByIdUseCase
         extensions: [{ key: 'deviceId', message: 'Device not found' }],
       });
 
-    if (device.userId !== userId)
+    if (device.userId.toString() !== userId)
       throw new DomainException({
         code: DomainExceptionCode.Forbidden,
         message: 'Device does not belong to this user',

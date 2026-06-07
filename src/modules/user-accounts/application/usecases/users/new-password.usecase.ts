@@ -33,10 +33,7 @@ export class NewPasswordUserUseCase
       });
     }
 
-    if (
-      user.recoveryExpiration &&
-      new Date(user.recoveryExpiration) < new Date()
-    ) {
+    if (user.passwordRecovery!.expirationDate < new Date()) {
       throw new DomainException({
         code: DomainExceptionCode.BadRequest,
         message: 'Confirmation code expired',
@@ -46,6 +43,9 @@ export class NewPasswordUserUseCase
 
     const newHash = await this.argonService.generateHash(newPassword);
 
-    await this.usersRepository.updatePasswordAndClearRecovery(user.id, newHash);
+    user.passwordHash = newHash;
+    user.passwordRecovery = null;
+
+    await this.usersRepository.save(user);
   }
 }

@@ -1,3 +1,5 @@
+import { HydratedDocument, Model } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { LikeStatusTypes } from '../api/view-dto/posts.view-dto';
 
 // enum MyLikeStatusTypes {

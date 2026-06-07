@@ -1,3 +1,4 @@
+import { MongooseModule } from '@nestjs/mongoose';
 import { Comment, CommentEntity } from './domain/comment.entity';
 import { CommentsController } from './api/comments.controller';
 import { CommentsQueryRepository } from './infrastructure/query/comments.query-repository';

@@ -17,7 +17,8 @@ export class LogoutUserUseCase implements ICommandHandler<LogoutUserCommand> {
     const { id: userId, deviceId } = payload;
 
     // 1. Ищем устройство
-    const device = await this.securityDevicesRepository.findByDeviceId(deviceId);
+    const device =
+      await this.securityDevicesRepository.findByDeviceId(deviceId);
     if (!device)
       throw new DomainException({
         code: DomainExceptionCode.Unauthorized,
@@ -26,7 +27,7 @@ export class LogoutUserUseCase implements ICommandHandler<LogoutUserCommand> {
       });
 
     // 2. Проверяем принадлежность устройства пользователю
-    if (device.userId !== userId)
+    if (device.userId.toString() !== userId)
       throw new DomainException({
         code: DomainExceptionCode.Unauthorized,
         message: 'Device does not belong to this user',

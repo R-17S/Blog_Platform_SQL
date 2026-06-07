@@ -1,3 +1,6 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument, Model } from 'mongoose';
+
 @Schema({ timestamps: true })
 export class Post {
   @Prop({ required: true })

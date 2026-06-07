@@ -25,11 +25,12 @@ export class PasswordRecoveryUseCase
     const recoveryCode = randomUUID();
     const expirationDate = add(new Date(), { hours: 24 });
 
-    await this.usersRepository.updateRecoveryData(
-      user.id,
+    user.passwordRecovery = {
       recoveryCode,
       expirationDate,
-    );
+    };
+
+    await this.usersRepository.save(user);
     this.eventBus.publish(new RecoveryEmailRequestedEvent(email, recoveryCode));
     //await this.emailService.sendRecoveryEmail(email, recoveryCode);
   }

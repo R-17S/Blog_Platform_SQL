@@ -17,6 +17,6 @@ export class DeleteUserUseCase implements ICommandHandler<DeleteUserCommand> {
         code: DomainExceptionCode.NotFound,
         message: 'User not found',
       });
-    await this.usersRepository.deleteUser(userId);
+    await this.usersRepository.delete(userId);
   }
 }

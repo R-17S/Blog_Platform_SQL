@@ -1,5 +1,6 @@
+import { InjectModel } from '@nestjs/mongoose';
 import { PostLike, PostLikeDocument } from '../domain/post.like-scheme';
-
+import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()

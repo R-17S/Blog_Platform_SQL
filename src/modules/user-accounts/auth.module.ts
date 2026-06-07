@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { AuthController } from './api/auth.controller';
 import { AuthService } from './application/auth.service';
-// import { AuthQueryRepository } from './infrastructure/query/auth.query-repository';
+import { AuthQueryRepository } from './infrastructure/query/auth.query-repository';
 import { LocalStrategy } from './guards/local/local.strategy';
 import { JwtStrategy } from './guards/bearer/jwt.strategy';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { EmailModule } from './email.module';
 import { UserAccountsModule } from './user-accounts.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { User, UserEntity } from './domain/user.entity';
 import { RegisterUserUseCase } from './application/usecases/users/register-user.usecase';
 import { ConfirmRegistrationUseCase } from './application/usecases/users/confirm-registration.usecase';
 import { ResendRegistrationUseCase } from './application/usecases/users/recend-registration.usecase';
@@ -24,6 +26,7 @@ import { JwtRefreshStrategy } from './guards/bearer/jwtRefresh.strategy';
 import { LogoutUserUseCase } from './application/usecases/logout-user.usecase';
 import { RefreshTokensUseCase } from './application/usecases/refresh-token.usecase';
 import { PassportModule } from '@nestjs/passport';
+import { Devices, DevicesEntity } from './domain/securityDevices.entity';
 import { CoreConfig } from '../../core/core.config';
 import { UserAccountsConfig } from './config/user-accounts.config';
 
@@ -34,6 +37,10 @@ import { UserAccountsConfig } from './config/user-accounts.config';
     UserAccountsModule,
     EmailModule,
     PassportModule,
+    MongooseModule.forFeature([
+      { name: User.name, schema: UserEntity },
+      { name: Devices.name, schema: DevicesEntity },
+    ]),
   ],
   controllers: [AuthController],
   providers: [
@@ -86,7 +93,7 @@ import { UserAccountsConfig } from './config/user-accounts.config';
     LogoutUserUseCase,
     RefreshTokensUseCase,
     //
-    // AuthQueryRepository,
+    AuthQueryRepository,
     LocalStrategy,
     JwtStrategy,
     JwtRefreshStrategy,

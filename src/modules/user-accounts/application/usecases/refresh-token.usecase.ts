@@ -10,7 +10,9 @@ import {
 } from '../../constans/auth-tokens.inject-constants';
 import { JwtService } from '@nestjs/jwt';
 import { SecurityDevicesRepository } from '../../infrastructure/devices.repositories';
-
+import { InjectModel } from '@nestjs/mongoose';
+import { Devices, DevicesDocument } from '../../domain/securityDevices.entity';
+import { Model } from 'mongoose';
 
 export class RefreshTokensCommand {
   constructor(public readonly payload: UserCookiesDto) {}
@@ -23,6 +25,8 @@ export class RefreshTokensUseCase
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly securityDevicesRepository: SecurityDevicesRepository,
+    @InjectModel(Devices.name)
+    private readonly devicesModel: Model<DevicesDocument>,
 
     @Inject(ACCESS_TOKEN_STRATEGY_INJECT_TOKEN)
     private readonly accessTokenService: JwtService,
@@ -67,16 +71,10 @@ export class RefreshTokensUseCase
     });
 
     // 4. Обновляем lastActiveDate устройства
-    const newPayload = this.refreshTokenService.decode(newRefreshToken) as {
-      iat: number;
-    };
-
-    const newLastActiveDate = new Date(newPayload.iat * 1000);
-
-    await this.securityDevicesRepository.updateLastActive(
-      payload.deviceId,
-      newLastActiveDate,
-    );
+    const newpayload = this.refreshTokenService.decode(newRefreshToken);
+    device.updateLastActive(new Date(newpayload.iat * 1000));
+    await this.securityDevicesRepository.save(device);
+    console.log('🔥 newRefreshToken payload:');
 
     return { accessToken, refreshToken: newRefreshToken };
   }

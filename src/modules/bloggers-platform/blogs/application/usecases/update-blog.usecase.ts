@@ -1,4 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { InjectModel } from '@nestjs/mongoose';
 import { Blog } from '../../domain/blog.entity';
 import type { BlogModelType } from '../../domain/blog.entity';
 import { BlogsRepository } from '../../infrastructure/blogs.repository';
