@@ -11,6 +11,10 @@ import { CreateUserDto } from '../../src/modules/user-accounts/dto/create-user.d
 import { DevicesViewModel } from '../../src/modules/user-accounts/api/view-dto/securityDevices.view-dto';
 import { UsersRepository } from '../../src/modules/user-accounts/infrastructure/users.repository';
 
+interface LoginResponseBody {
+  accessToken: string;
+}
+
 export class UsersTestManager {
   constructor(
     private app: INestApplication,
@@ -60,7 +64,7 @@ export class UsersTestManager {
       .expect(statusCode);
     expect(response.status).toBe(statusCode);
 
-    const accessToken: string = response.body.accessToken as string;
+    const { accessToken } = response.body as LoginResponseBody;
     const refreshToken = response.headers['set-cookie'][0]
       .split(';')[0]
       .replace('refreshToken=', '');
@@ -115,18 +119,18 @@ export class UsersTestManager {
     return await Promise.all(loginPromises);
   }
 
-  // async getRecoveryCode(email: string): Promise<string> {
-  //   const usersRepository = this.app.get(UsersRepository);
-  //   const user = await usersRepository.findByEmail(email);
-  //   if (!user) {
-  //     throw new Error(`User with email ${email} not found`);
-  //   }
-  //   const code = user.passwordRecovery?.recoveryCode;
-  //   if (!code) {
-  //     throw new Error(`Recovery code for ${email} not found`);
-  //   }
-  //   return code;
-  // }
+  async getRecoveryCode(email: string): Promise<string> {
+    const usersRepository = this.app.get(UsersRepository);
+    const user = await usersRepository.findByEmail(email);
+    if (!user) {
+      throw new Error(`User with email ${email} not found`);
+    }
+    const code = user.recoveryCode;
+    if (!code) {
+      throw new Error(`Recovery code for ${email} not found`);
+    }
+    return code;
+  }
 
   async createAndLoginSingleUser(): Promise<{
     accessToken: string;

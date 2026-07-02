@@ -1,12 +1,9 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-
 import { PostsRepository } from '../../infrastructure/posts.repository';
-import { BlogsRepository } from '../../../blogs/infrastructure/blogs.repository';
-import { Post } from '../../domain/post.entity';
-import type { PostModelType } from '../../domain/post.entity';
 import { UpdatePostDto } from '../../dto/update-post.dto';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
+import { BlogsRepository } from '../../../blogs/infrastructure/blogs.repository';
 
 export class UpdatePostCommand {
   constructor(
@@ -20,21 +17,36 @@ export class UpdatePostUseCase
   implements ICommandHandler<UpdatePostCommand, void>
 {
   constructor(
-    @InjectModel(Post.name) private readonly postModel: PostModelType,
     private readonly postsRepository: PostsRepository,
     private readonly blogsRepository: BlogsRepository,
   ) {}
 
   async execute({ id, input }: UpdatePostCommand): Promise<void> {
+    // 1. Загружаем пост
     const post = await this.postsRepository.findById(id);
-    if (!post)
+    if (!post) {
       throw new DomainException({
         code: DomainExceptionCode.NotFound,
         message: 'Post not found',
       });
+    }
 
+    // 2. Проверяем, что блог существует
     await this.blogsRepository.checkBlogExistsOrError(input.blogId);
-    post.updateDetails(input.title, input.shortDescription, input.content);
-    await this.postsRepository.save(post);
+
+    // 3. Обновляем поля
+    post.title = input.title;
+    post.shortDescription = input.shortDescription;
+    post.content = input.content;
+    post.blogId = input.blogId;
+
+    // 4. Обновляем blogName (если блог поменялся)
+    post.blogName = await this.blogsRepository.getBlogNameOrError(input.blogId);
+
+    // 5. Обновляем updatedAt
+    post.updatedAt = new Date().toISOString();
+
+    // 6. Сохраняем
+    await this.postsRepository.updatePost(post);
   }
 }

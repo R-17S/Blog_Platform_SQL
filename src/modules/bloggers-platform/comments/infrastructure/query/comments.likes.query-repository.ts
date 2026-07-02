@@ -1,28 +1,32 @@
-import {
-  CommentLike,
-  CommentLikeDocument,
-} from '../../domain/comment.like-scheme';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { LikeStatusTypes } from '../../api/view-dto/comments.view-dto';
+import { Pool } from 'pg';
 
 @Injectable()
 export class CommentLikesQueryRepository {
-  constructor(
-    @InjectModel(CommentLike.name)
-    private readonly likeModel: Model<CommentLikeDocument>,
-  ) {}
+  constructor(@Inject('PG_POOL') private readonly pool: Pool) {}
 
   async getStatusesForComments(
     userId: string,
     commentIds: string[],
   ): Promise<Record<string, LikeStatusTypes>> {
-    const likes = await this.likeModel
-      .find({ userId, commentId: { $in: commentIds } })
-      .lean();
+    if (commentIds.length === 0) return {};
+
+    const result = await this.pool.query<{
+      commentId: string;
+      status: LikeStatusTypes;
+    }>(
+      `
+      SELECT "commentId", "status"
+      FROM "CommentLikes"
+      WHERE "userId" = $1 AND "commentId" = ANY($2)
+      `,
+      [userId, commentIds],
+    );
 
     const map: Record<string, LikeStatusTypes> = {};
-    for (const like of likes) {
-      map[like.commentId] = like.status as LikeStatusTypes;
+    for (const row of result.rows) {
+      map[row.commentId] = row.status;
     }
     return map;
   }
@@ -30,42 +34,43 @@ export class CommentLikesQueryRepository {
   async getLikesCountForComments(
     commentIds: string[],
   ): Promise<Record<string, number>> {
-    const likes = await this.likeModel.aggregate<{
-      _id: string;
-      count: number;
-    }>([
-      {
-        $match: {
-          commentId: { $in: commentIds },
-          status: LikeStatusTypes.Like,
-        },
-      },
-      { $group: { _id: '$commentId', count: { $sum: 1 } } },
-    ]);
+    if (commentIds.length === 0) return {};
+
+    const result = await this.pool.query<{ commentId: string; count: string }>(
+      `
+      SELECT "commentId", COUNT(*) AS count
+      FROM "CommentLikes"
+      WHERE "commentId" = ANY($1) AND "status" = 'Like'
+      GROUP BY "commentId"
+      `,
+      [commentIds],
+    );
+
     const map: Record<string, number> = {};
-    for (const like of likes) {
-      map[like._id] = like.count;
+    for (const row of result.rows) {
+      map[row.commentId] = Number(row.count);
     }
     return map;
   }
+
   async getDislikesCountForComments(
     commentIds: string[],
   ): Promise<Record<string, number>> {
-    const dislikes = await this.likeModel.aggregate<{
-      _id: string;
-      count: number;
-    }>([
-      {
-        $match: {
-          commentId: { $in: commentIds },
-          status: LikeStatusTypes.Dislike,
-        },
-      },
-      { $group: { _id: '$commentId', count: { $sum: 1 } } },
-    ]);
+    if (commentIds.length === 0) return {};
+
+    const result = await this.pool.query<{ commentId: string; count: string }>(
+      `
+      SELECT "commentId", COUNT(*) AS count
+      FROM "CommentLikes"
+      WHERE "commentId" = ANY($1) AND "status" = 'Dislike'
+      GROUP BY "commentId"
+      `,
+      [commentIds],
+    );
+
     const map: Record<string, number> = {};
-    for (const dislike of dislikes) {
-      map[dislike._id] = dislike.count;
+    for (const row of result.rows) {
+      map[row.commentId] = Number(row.count);
     }
     return map;
   }

@@ -5,10 +5,7 @@ import {
   REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
 } from '../../constans/auth-tokens.inject-constants';
 import { JwtService } from '@nestjs/jwt';
-
 import { randomUUID } from 'node:crypto';
-
-
 import { SecurityDevicesRepository } from '../../infrastructure/devices.repositories';
 import { UserSqlEntity } from '../../domain/user.entity';
 import { SecurityDeviceSqlEntity } from '../../domain/securityDevices.entity';
@@ -42,9 +39,7 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
       deviceId,
     });
 
-    const payload = this.refreshTokenContext.decode(refreshToken) as {
-      iat: number;
-    };
+    const payload = this.refreshTokenContext.decode<{ iat: number }>(refreshToken);
     const lastActiveDate = new Date(payload.iat * 1000);
 
     const device: SecurityDeviceSqlEntity = {

@@ -12,25 +12,28 @@ export class DeleteCommentCommand {
 
 @CommandHandler(DeleteCommentCommand)
 export class DeleteCommentUseCase
-  implements ICommandHandler<DeleteCommentCommand, void>
-{
+  implements ICommandHandler<DeleteCommentCommand, void> {
   constructor(private readonly commentsRepository: CommentsRepository) {}
-  async execute(input: DeleteCommentCommand): Promise<void> {
-    const { id, userId } = input;
+
+  async execute({ id, userId }: DeleteCommentCommand): Promise<void> {
+    // 1. Так тут нашли коммент
     const comment = await this.commentsRepository.findById(id);
-    if (!comment)
+    if (!comment) {
       throw new DomainException({
         code: DomainExceptionCode.NotFound,
         message: 'Comment not found',
       });
+    }
 
-    if (comment.commentatorInfo.userId !== userId) {
+    // 2. Проверяем
+    if (comment.userId !== userId) {
       throw new DomainException({
         code: DomainExceptionCode.Forbidden,
         message: 'You cannot edit this comment',
       });
     }
-    comment.makeDeleted();
-    await this.commentsRepository.save(comment);
+
+    // 3. Удаление через софт или на комменты оставить полное?
+    await this.commentsRepository.softDelete(id);
   }
 }

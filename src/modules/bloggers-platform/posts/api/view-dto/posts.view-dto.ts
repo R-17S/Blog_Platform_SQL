@@ -1,5 +1,5 @@
 import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
-import { PostDocument } from '../../domain/post.entity';
+import { PostSqlEntity } from '../../domain/post.entity';
 
 export enum LikeStatusTypes {
   Like = 'Like',
@@ -25,22 +25,21 @@ export class PostViewModel {
     }>;
   };
 
-  // а что делать то? взвращается lean  как это типизировать ?
   static mapToView(
-    post: PostDocument,
+    post: PostSqlEntity,
     myStatus: LikeStatusTypes,
     newestLikes: Array<{ addedAt: Date; userId: string; login: string }>,
     likesCount: number,
     dislikesCount: number,
   ): PostViewModel {
     return {
-      id: post._id.toString(),
+      id: post.id,
       title: post.title,
       shortDescription: post.shortDescription,
       content: post.content,
       blogId: post.blogId,
       blogName: post.blogName,
-      createdAt: post.createdAt,
+      createdAt: new Date(post.createdAt),
       extendedLikesInfo: {
         likesCount,
         dislikesCount,

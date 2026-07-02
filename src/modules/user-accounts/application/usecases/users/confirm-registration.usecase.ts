@@ -32,7 +32,7 @@ export class ConfirmRegistrationUseCase
     }
 
     if (
-      user.confirmationExpiration && // какого хрена ? почему confirmationExpiration === null я должен проверять ?
+      user.confirmationExpiration &&
       new Date(user.confirmationExpiration) < new Date()
     ) {
       throw new DomainException({

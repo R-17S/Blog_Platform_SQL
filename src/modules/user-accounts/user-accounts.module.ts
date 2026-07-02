@@ -11,7 +11,6 @@ import { SecurityDevicesQueryRepository } from './infrastructure/query/devices.q
 import { SecurityDevicesController } from './api/security-devices.controller';
 import { DeleteDeviceByIdUseCase } from './application/usecases/security-devices/delete-device-by-id.usecase';
 import { DeleteAllDevicesExceptCurrentUseCase } from './application/usecases/security-devices/delete-all-devices-except-current.usecase';
-
 import { UserAccountsConfig } from './config/user-accounts.config';
 import { PgModule } from '../../pg.module';
 
@@ -37,7 +36,6 @@ import { PgModule } from '../../pg.module';
   exports: [
     UsersRepository,
     SecurityDevicesRepository,
-    //UsersService,
     ArgonService,
     UserAccountsConfig,
   ],

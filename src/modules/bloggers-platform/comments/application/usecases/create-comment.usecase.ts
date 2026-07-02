@@ -2,9 +2,8 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 import { CommentsRepository } from '../../infrastructure/comments.repository';
 import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
-import { Comment } from '../../domain/comment.entity';
-import type { CommentModelType } from '../../domain/comment.entity';
 import { CreateCommentDto } from '../../dto/create-comment.dto';
+import { CommentSqlEntity } from '../../domain/comment.entity';
 
 export class CreateCommentCommand {
   constructor(
@@ -20,26 +19,36 @@ export class CreateCommentUseCase
   implements ICommandHandler<CreateCommentCommand, string>
 {
   constructor(
-    @InjectModel(Comment.name)
-    private readonly commentModel: CommentModelType,
     private readonly commentsRepository: CommentsRepository,
     private readonly postsRepository: PostsRepository,
   ) {}
+
   async execute({
     input,
     postId,
     userId,
     userLogin,
   }: CreateCommentCommand): Promise<string> {
+    // 1. Проверяем, что пост существует
     await this.postsRepository.checkPostExistsOrError(postId);
 
-    const comment = this.commentModel.createInstance(
-      input.content,
+    // 2. Создаём SQL‑сущность комментария
+    const now = new Date().toISOString();
+    const comment: CommentSqlEntity = {
+      id: crypto.randomUUID(),
       postId,
+      content: input.content,
       userId,
       userLogin,
-    );
-    await this.commentsRepository.save(comment);
-    return comment._id.toString();
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    };
+
+    // 3. Сохраняем
+    await this.commentsRepository.createComment(comment);
+
+    // 4. Возвращаем id
+    return comment.id;
   }
 }

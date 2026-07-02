@@ -55,3 +55,15 @@
 //
 // //Типизация модели + статические методы
 // export type BlogModelType = Model<BlogDocument> & typeof Blog;
+
+export type BlogSqlEntity = {
+  id: string;
+  name: string;
+  description: string;
+  websiteUrl: string;
+  isMembership: boolean;
+
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+};

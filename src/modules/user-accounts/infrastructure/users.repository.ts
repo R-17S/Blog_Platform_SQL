@@ -6,12 +6,8 @@ import { Pool } from 'pg';
 export class UsersRepository {
   constructor(@Inject('PG_POOL') private readonly pool: Pool) {}
 
-  // async save(user: UserDocument): Promise<void> {
-  //   await user.save();
-  // }
-  //
   async findById(id: string): Promise<UserSqlEntity | null> {
-    const result = await this.pool.query(
+    const result = await this.pool.query<UserSqlEntity>(
       `
       SELECT id, login, email, passwordHash, createdAt, deletedAt
       FROM "Users"
@@ -34,8 +30,17 @@ export class UsersRepository {
     await this.pool.query(
       `
           INSERT INTO "Users" (
-            "id", "login", "email", "passwordHash", "confirmationCode", 
-            "confirmationExpiration", "isConfirmed", "recoveryCode", "createdAt", "deletedAt"
+            "id",
+            "login",
+            "email",
+            "passwordHash",
+            "confirmationCode", 
+            "confirmationExpiration",
+            "isConfirmed",
+            "recoveryCode",
+            "recoveryExpiration",
+            "createdAt",
+            "deletedAt",
           )
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         `,
@@ -48,6 +53,7 @@ export class UsersRepository {
         user.confirmationExpiration,
         user.isConfirmed,
         user.recoveryCode,
+        user.recoveryExpiration,
         user.createdAt,
         user.deletedAt,
       ],
@@ -55,7 +61,7 @@ export class UsersRepository {
   }
 
   async findByLogin(login: string): Promise<UserSqlEntity | null> {
-    const result = await this.pool.query(
+    const result = await this.pool.query<UserSqlEntity>(
       `SELECT * FROM "Users" WHERE login = $1`,
       [login],
     );
@@ -63,7 +69,7 @@ export class UsersRepository {
   }
 
   async findByEmail(email: string): Promise<UserSqlEntity | null> {
-    const result = await this.pool.query(
+    const result = await this.pool.query<UserSqlEntity>(
       `SELECT * FROM "Users" WHERE email = $1`,
       [email],
     );
@@ -71,13 +77,25 @@ export class UsersRepository {
   }
 
   async exists(id: string): Promise<boolean> {
-    await this.pool.query(`SELECT FROM "Users" WHERE id = $1`, [id]);
-    return true;
+    const result = await this.pool.query(
+      `
+        SELECT 1
+        FROM "Users"
+        WHERE id = $1`,
+      [id],
+    );
+    return (result.rowCount ?? 0) > 0;
   }
 
   async deleteUser(userId: string): Promise<boolean> {
-    await this.pool.query(`DELETE FROM "Users" WHERE id = $1`, [userId]);
-    return true;
+    const result = await this.pool.query(
+      `
+        UPDATE "Users"
+        SET "deletedAt" = NOW()
+        WHERE id = $1`,
+      [userId],
+    );
+    return (result.rowCount ?? 0) > 0;
   }
 
   async deleteAll(): Promise<void> {
@@ -85,7 +103,7 @@ export class UsersRepository {
   }
 
   async findByConfirmationCode(code: string): Promise<UserSqlEntity | null> {
-    const result = await this.pool.query(
+    const result = await this.pool.query<UserSqlEntity>(
       `SELECT * FROM "Users" WHERE "confirmationCode" = $1`,
       [code],
     );
@@ -93,7 +111,7 @@ export class UsersRepository {
   }
 
   async findByRecoveryCode(code: string): Promise<UserSqlEntity | null> {
-    const result = await this.pool.query(
+    const result = await this.pool.query<UserSqlEntity>(
       `SELECT * FROM "Users" WHERE "recoveryCode" = $1`,
       [code],
     );
@@ -104,9 +122,9 @@ export class UsersRepository {
     await this.pool.query(
       `
     UPDATE "Users"
-    SET "confirmationCode" = $2,
-        "confirmationExpiration" = $3
-    WHERE id = $1
+    SET "confirmationCode" = $1,
+        "confirmationExpiration" = $2
+    WHERE id = $3
     `,
       [code, expiration, userId],
     );

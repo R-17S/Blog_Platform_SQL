@@ -17,7 +17,6 @@ import { PostsQueryRepository } from '../infrastructure/query/posts.query-reposi
 import { CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { PostsRepository } from '../infrastructure/posts.repository';
-import { CurrentUserId } from '../../../../core/decorators/current-user-id.decorator';
 import {
   CommentsViewPaginated,
   CommentViewModel,
@@ -45,10 +44,8 @@ import { SkipThrottle } from '@nestjs/throttler';
 export class PostsController {
   constructor(
     private readonly commandBus: CommandBus,
-    //private readonly postsService: PostsService,
     private readonly postsQueryRepository: PostsQueryRepository,
     private readonly postsRepository: PostsRepository,
-    //private readonly commentsService: CommentsService,
     private readonly commentsQueryRepository: CommentsQueryRepository,
   ) {}
 
@@ -60,7 +57,6 @@ export class PostsController {
     @Body() input: UpdateLikeStatusDto,
     @ExtractUserFromRequest() user: UserContextDto,
   ): Promise<void> {
-    //await this.postsRepository.checkPostExistsOrError(postId);
     await this.commandBus.execute(
       new UpdatePostLikeStatusCommand(
         postId,

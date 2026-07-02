@@ -1,9 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-
 import { PostsRepository } from '../../infrastructure/posts.repository';
+import { PostSqlEntity } from '../../domain/post.entity';
 import { BlogsRepository } from '../../../blogs/infrastructure/blogs.repository';
-import { Post } from '../../domain/post.entity';
-import type { PostModelType } from '../../domain/post.entity';
 
 export class CreatePostCommand {
   constructor(
@@ -19,29 +17,36 @@ export class CreatePostUseCase
   implements ICommandHandler<CreatePostCommand, string>
 {
   constructor(
-    @InjectModel(Post.name)
-    private readonly postModel: PostModelType,
     private readonly postsRepository: PostsRepository,
     private readonly blogsRepository: BlogsRepository,
   ) {}
 
-  async execute(input: CreatePostCommand): Promise<string> {
-    // Проверяем, что блог существует
-    const blogName = await this.blogsRepository.getBlogNameOrError(
-      input.blogId,
-    );
+  async execute(command: CreatePostCommand): Promise<string> {
+    const { title, shortDescription, content, blogId } = command;
 
-    // Создаём доменную сущность
-    const post = this.postModel.createInstance(
-      input.title,
-      input.shortDescription,
-      input.content,
-      input.blogId,
+    // 1. Проверяем, что блог существует и получаем blogName
+    const blogName = await this.blogsRepository.getBlogNameOrError(blogId);
+
+    // 2. Создаём SQL‑сущность (плоский объект)
+    const now = new Date().toISOString();
+    const post: PostSqlEntity = {
+      id: crypto.randomUUID(),
+      title,
+      shortDescription,
+      content,
+      blogId,
       blogName,
-    );
+      likesCount: 0,
+      dislikesCount: 0,
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    };
 
-    await this.postsRepository.save(post);
+    // 3. Сохраняем в базе
+    await this.postsRepository.createPost(post);
 
-    return post._id.toString();
+    // 4. Возвращаем id
+    return post.id;
   }
 }

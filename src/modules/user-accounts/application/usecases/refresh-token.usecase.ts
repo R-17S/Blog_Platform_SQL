@@ -67,9 +67,7 @@ export class RefreshTokensUseCase
     });
 
     // 4. Обновляем lastActiveDate устройства
-    const newPayload = this.refreshTokenService.decode(newRefreshToken) as {
-      iat: number;
-    };
+    const newPayload = this.refreshTokenService.decode<{ iat: number }>(newRefreshToken);
 
     const newLastActiveDate = new Date(newPayload.iat * 1000);
 

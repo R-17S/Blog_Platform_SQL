@@ -1,5 +1,5 @@
 import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
-import { CommentDocument } from '../../domain/comment.entity';
+import { CommentSqlEntity } from '../../domain/comment.entity';
 
 export enum LikeStatusTypes {
   Like = 'Like',
@@ -13,7 +13,7 @@ export class CommentViewModel {
     userId: string;
     userLogin: string;
   };
-  createdAt: Date;
+  createdAt: string;
   likesInfo: {
     likesCount: number;
     dislikesCount: number;
@@ -21,17 +21,17 @@ export class CommentViewModel {
   };
 
   static mapToView(
-    comment: CommentDocument,
+    comment: CommentSqlEntity,
     myStatus: LikeStatusTypes,
     likesCount: number,
     dislikesCount: number,
   ): CommentViewModel {
     return {
-      id: comment._id.toString(),
+      id: comment.id,
       content: comment.content,
       commentatorInfo: {
-        userId: comment.commentatorInfo.userId,
-        userLogin: comment.commentatorInfo.userLogin,
+        userId: comment.userId,
+        userLogin: comment.userLogin,
       },
       createdAt: comment.createdAt,
       likesInfo: {

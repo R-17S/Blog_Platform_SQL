@@ -1,8 +1,6 @@
 import { CreateBlogDto } from '../../dto/create-blog.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-
-import { Blog } from '../../domain/blog.entity';
-import type { BlogModelType } from '../../domain/blog.entity';
+import { BlogSqlEntity } from '../../domain/blog.entity';
 import { BlogsRepository } from '../../infrastructure/blogs.repository';
 
 export class CreateBlogCommand {
@@ -13,20 +11,21 @@ export class CreateBlogCommand {
 export class CreateBlogUseCase
   implements ICommandHandler<CreateBlogCommand, string>
 {
-  constructor(
-    @InjectModel(Blog.name)
-    private readonly blogModel: BlogModelType,
-    private readonly blogsRepository: BlogsRepository,
-  ) {}
+  constructor(private readonly blogsRepository: BlogsRepository) {}
 
   async execute({ input }: CreateBlogCommand): Promise<string> {
-    const blog = this.blogModel.createInstance(
-      input.name,
-      input.description,
-      input.websiteUrl,
-    );
+    const blog: BlogSqlEntity = {
+      id: crypto.randomUUID(),
+      name: input.name,
+      description: input.description,
+      websiteUrl: input.websiteUrl,
+      isMembership: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      deletedAt: null,
+    };
 
-    await this.blogsRepository.save(blog);
-    return blog._id.toString();
+    await this.blogsRepository.createBlog(blog);
+    return blog.id;
   }
 }

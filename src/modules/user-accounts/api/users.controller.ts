@@ -26,8 +26,6 @@ import { SkipThrottle } from '@nestjs/throttler';
 export class UsersController {
   constructor(
     private readonly commandBus: CommandBus,
-    //private readonly usersService: UsersService,
-    //private readonly usersRepository: UsersRepository,
     private readonly usersQueryRepository: UsersQueryRepository,
   ) {}
 

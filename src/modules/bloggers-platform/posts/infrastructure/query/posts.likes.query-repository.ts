@@ -1,32 +1,37 @@
-import { PostLike, PostLikeDocument } from '../../domain/post.like-scheme';
-
-import { Injectable } from '@nestjs/common';
-
+import { Inject, Injectable } from '@nestjs/common';
 import { NewestLikeViewModel } from '../../dto/newest-like-view-model';
-import { AggregatedLikesResult } from '../interface/post-aggregated-likes-result';
-import { PostDocument } from '../../domain/post.entity';
 import {
   LikeStatusTypes,
   PostViewModel,
 } from '../../api/view-dto/posts.view-dto';
+import { Pool } from 'pg';
+import { PostSqlEntity } from '../../domain/post.entity';
 
 @Injectable()
 export class PostLikesQueryRepository {
-  constructor(
-    @InjectModel(PostLike.name)
-    private readonly likeModel: Model<PostLikeDocument>,
-  ) {}
+  constructor(@Inject('PG_POOL') private readonly pool: Pool) {}
 
   async getStatusesForPosts(
     userId: string,
     postIds: string[],
   ): Promise<Record<string, LikeStatusTypes>> {
-    const likes = await this.likeModel
-      .find({ userId, postId: { $in: postIds } })
-      .lean();
+    if (postIds.length === 0) return {};
+
+    const result = await this.pool.query<{
+      postid: string;
+      status: LikeStatusTypes;
+    }>(
+      `
+      SELECT "postId", "status"
+      FROM "PostLikes"
+      WHERE "userId" = $1 AND "postId" = ANY($2)
+      `,
+      [userId, postIds],
+    );
+
     const map: Record<string, LikeStatusTypes> = {};
-    for (const like of likes) {
-      map[like.postId] = like.status as LikeStatusTypes; // Не знаю как обойтись без типа
+    for (const row of result.rows) {
+      map[row.postid] = row.status;
     }
     return map;
   }
@@ -34,57 +39,82 @@ export class PostLikesQueryRepository {
   async getNewestLikesForPosts(
     postIds: string[],
   ): Promise<Record<string, NewestLikeViewModel[]>> {
-    const likes = await this.likeModel.aggregate<AggregatedLikesResult>([
-      { $match: { postId: { $in: postIds }, status: LikeStatusTypes.Like } },
-      { $sort: { createdAt: -1 } },
-      { $group: { _id: '$postId', newest: { $push: '$$ROOT' } } }, // создаёт массив newest, куда складываются все документы этой группы. добавляет элемент в массив.$$ROOT — это специальная переменная, которая означает «весь текущий документ целиком»
-    ]);
+    if (postIds.length === 0) return {};
+
+    const result = await this.pool.query<{
+      postid: string;
+      userid: string;
+      userlogin: string;
+      createdаt: string;
+    }>(
+      `
+          SELECT "postId", "userId", "userLogin", "createdAt"
+          FROM "PostLikes"
+          WHERE "postId" = ANY($1) AND "status" = 'Like'
+          ORDER BY "createdAt" DESC
+      `,
+      [postIds],
+    );
+
     const map: Record<string, NewestLikeViewModel[]> = {};
-    for (const like of likes) {
-      map[like._id] = like.newest.slice(0, 3).map((x) => ({
-        userId: x.userId,
-        login: x.userLogin,
-        addedAt: x.createdAt,
-      }));
+
+    for (const row of result.rows) {
+      if (!map[row.postid]) map[row.postid] = [];
+
+      if (map[row.postid].length < 3) {
+        map[row.postid].push({
+          userId: row.userid,
+          login: row.userlogin,
+          addedAt: new Date(row.createdаt),
+        });
+      }
     }
+
     return map;
   }
 
   async getLikesCountForPosts(postIds: string[]) {
-    const likes = await this.likeModel.aggregate<{
-      _id: string;
-      count: number;
-    }>([
-      { $match: { postId: { $in: postIds }, status: LikeStatusTypes.Like } },
-      { $group: { _id: '$postId', count: { $sum: 1 } } },
-    ]);
+    if (postIds.length === 0) return {};
+
+    const result = await this.pool.query<{ postid: string; count: string }>(
+      `
+      SELECT "postId", COUNT(*) AS count
+      FROM "PostLikes"
+      WHERE "postId" = ANY($1) AND "status" = 'Like'
+      GROUP BY "postId"
+      `,
+      [postIds],
+    );
+
     const map: Record<string, number> = {};
-    for (const like of likes) {
-      map[like._id] = like.count;
+    for (const row of result.rows) {
+      map[row.postid] = Number(row.count);
     }
     return map;
   }
 
   async getDislikesCountForPosts(postIds: string[]) {
-    const dislikes = await this.likeModel.aggregate<{
-      _id: string;
-      count: number;
-    }>([
-      { $match: { postId: { $in: postIds }, status: LikeStatusTypes.Dislike } },
-      { $group: { _id: '$postId', count: { $sum: 1 } } },
-    ]);
+    if (postIds.length === 0) return {};
+
+    const result = await this.pool.query<{ postid: string; count: string }>(
+      `
+      SELECT "postId", COUNT(*) AS count
+      FROM "PostLikes"
+      WHERE "postId" = ANY($1) AND "status" = 'Dislike'
+      GROUP BY "postId"
+      `,
+      [postIds],
+    );
+
     const map: Record<string, number> = {};
-    for (const dislike of dislikes) {
-      map[dislike._id] = dislike.count;
+    for (const row of result.rows) {
+      map[row.postid] = Number(row.count);
     }
     return map;
   }
 
-  async enrichPostsWithLikes(
-    posts: PostDocument[],
-    userId?: string,
-  ): Promise<PostViewModel[]> {
-    const postIds = posts.map((p) => p._id.toString());
+  async enrichPostsWithLikes(posts: PostSqlEntity[], userId?: string): Promise<PostViewModel[]> {
+    const postIds = posts.map((p) => p.id);
 
     const [statusesMap, newestLikesMap, likesCountMap, dislikesCountMap] =
       await Promise.all([
@@ -97,10 +127,10 @@ export class PostLikesQueryRepository {
     return posts.map((post) =>
       PostViewModel.mapToView(
         post,
-        statusesMap[post._id.toString()] ?? LikeStatusTypes.None,
-        newestLikesMap[post._id.toString()] ?? [],
-        likesCountMap[post._id.toString()] ?? 0,
-        dislikesCountMap[post._id.toString()] ?? 0,
+        statusesMap[post.id] ?? LikeStatusTypes.None,
+        newestLikesMap[post.id] ?? [],
+        likesCountMap[post.id] ?? 0,
+        dislikesCountMap[post.id] ?? 0,
       ),
     );
   }

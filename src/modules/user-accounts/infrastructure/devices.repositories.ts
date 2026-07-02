@@ -33,6 +33,21 @@ export class SecurityDevicesRepository {
     return result.rows.map((r) => r.deviceId);
   }
 
+  async findAllDeviceIdsExceptCurrent(
+    userId: string,
+    currentDeviceId: string,
+  ): Promise<string[]> {
+    const result = await this.pool.query<{ deviceId: string }>(
+      `
+      SELECT "deiceId"
+      FROM "SecurityDevices"
+      WHERE "userId" = $1 AND "deviceId" <> $2
+      `,
+      [userId, currentDeviceId],
+    );
+    return result.rows.map((r) => r.deviceId);
+  }
+
   async deleteManyByDeviceIds(deviceIds: string[]): Promise<void> {
     await this.pool.query(
       `DELETE FROM "SecurityDevices" WHERE "deviceId" = ANY($1)`,
@@ -44,7 +59,10 @@ export class SecurityDevicesRepository {
     deviceId: string,
   ): Promise<SecurityDeviceSqlEntity | null> {
     const result = await this.pool.query<SecurityDeviceSqlEntity>(
-      `SELECT * FROM "SecurityDevices" WHERE "deviceId" = $1`,
+      `
+        SELECT * 
+        FROM "SecurityDevices"
+        WHERE "deviceId" = $1`,
       [deviceId],
     );
     return result.rows[0] ?? null;
@@ -52,7 +70,10 @@ export class SecurityDevicesRepository {
 
   async deleteDevice(deviceId: string): Promise<void> {
     await this.pool.query(
-      `DELETE FROM "SecurityDevices" WHERE "deviceId" = $1`,
+      `
+        DELETE 
+        FROM "SecurityDevices"
+        WHERE "deviceId" = $1`,
       [deviceId],
     );
   }

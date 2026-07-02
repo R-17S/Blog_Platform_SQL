@@ -16,15 +16,15 @@ export class DeleteAllDevicesExceptCurrentUseCase
 
   async execute({ user }: DeleteAllDevicesExceptCurrentCommand): Promise<void> {
     const { id: userId, deviceId: currentDeviceId } = user;
-    const devices =
-      await this.securityDevicesRepository.findAllByUserId(userId);
-    //  Фильтруем все, кроме текущего тут или как то достать только нужные поля из монго?
-    const otherDeviceIds = devices
-      .filter(deviceId => deviceId !== currentDeviceId,
-    );
-      //.filter((device) => device.deviceId !== currentDeviceId)
-      //.map((device) => device.deviceId);
-
-    await this.securityDevicesRepository.deleteManyByDeviceIds(otherDeviceIds);
+    const otherDeviceIds =
+      await this.securityDevicesRepository.findAllDeviceIdsExceptCurrent(
+        userId,
+        currentDeviceId,
+      );
+    if (otherDeviceIds.length > 0) {
+      await this.securityDevicesRepository.deleteManyByDeviceIds(
+        otherDeviceIds,
+      );
+    }
   }
 }

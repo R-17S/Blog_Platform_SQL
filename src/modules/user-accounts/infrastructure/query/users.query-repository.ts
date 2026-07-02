@@ -7,6 +7,8 @@ import { UserInputQuery } from '../../api/input-dto/get-users-query-params.input
 import { DomainException } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
 import { Pool } from 'pg';
+import { SortDirection } from '../../../../core/dto/base.query-params.input-dto';
+import { UserSqlEntity } from '../../domain/user.entity';
 
 @Injectable()
 export class UsersQueryRepository {
@@ -28,8 +30,14 @@ export class UsersQueryRepository {
       where += ` AND email ILIKE $${values.length}`;
     }
 
-    const sortBy = params.sortBy ?? 'createdAt';
-    const sortDirection = params.sortDirection === 'asc' ? 'ASC' : 'DESC';
+    //const sortBy = params.sortBy ?? 'createdAt'; нормальная иньекция спросить ?
+
+    const allowedSortBy = ['id', 'login', 'email', 'createdAt'];
+    const sortBy = allowedSortBy.includes(params.sortBy)
+      ? params.sortBy
+      : 'createdAt';
+    const sortDirection =
+      params.sortDirection === SortDirection.Asc ? 'ASC' : 'DESC';
 
     const offset = params.calculateSkip();
     const limit = params.pageSize;
@@ -39,7 +47,10 @@ export class UsersQueryRepository {
       FROM "Users"
       ${where}
     `;
-    const totalCountResult = await this.pool.query(totalCountQuery, values);
+    const totalCountResult = await this.pool.query<{ count: string }>(
+      totalCountQuery,
+      values,
+    );
     const totalCount = Number(totalCountResult.rows[0].count);
 
     const itemsQuery = `
@@ -61,8 +72,11 @@ export class UsersQueryRepository {
   }
 
   async getUserByIdOrError(id: string): Promise<UserViewModel> {
-    const result = await this.pool.query(
-      `SELECT * FROM "Users" WHERE id = $1 AND "deletedAt" IS NULL`,
+    const result = await this.pool.query<UserSqlEntity>(
+      `
+        SELECT * 
+        FROM "Users" 
+        WHERE id = $1 AND "deletedAt" IS NULL`,
       [id],
     );
 

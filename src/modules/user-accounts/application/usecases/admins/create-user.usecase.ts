@@ -2,11 +2,9 @@ import { CreateUserDto } from '../../../dto/create-user.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersRepository } from '../../../infrastructure/users.repository';
 import { ArgonService } from '../../argon2.service';
-
-
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
-import { randomUUID } from 'node:crypto';
+import { UserSqlEntity } from '../../../domain/user.entity';
 
 export class CreateUserCommand {
   constructor(public readonly input: CreateUserDto) {}
@@ -36,8 +34,8 @@ export class CreateUserUseCase implements ICommandHandler<CreateUserCommand> {
         extensions: [{ key: 'email', message: 'Email should be unique' }],
       });
     const passwordHash = await this.argonService.generateHash(input.password);
-    const newUser = {
-      id: randomUUID(),
+    const newUser: UserSqlEntity = {
+      id: crypto.randomUUID(),
       login: input.login,
       email: input.email,
       passwordHash,
@@ -45,6 +43,7 @@ export class CreateUserUseCase implements ICommandHandler<CreateUserCommand> {
       confirmationExpiration: null,
       isConfirmed: true, // админ создаёт сразу подтверждённого
       recoveryCode: null,
+      recoveryExpiration: null,
       createdAt: new Date().toISOString(),
       deletedAt: null,
     };

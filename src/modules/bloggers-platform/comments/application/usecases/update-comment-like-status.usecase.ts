@@ -1,7 +1,6 @@
 import { LikeStatusTypes } from '../../api/view-dto/comments.view-dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { CommentLike } from '../../domain/comment.like-scheme';
-import type { CommentLikeModelType } from '../../domain/comment.like-scheme';
+
 import { CommentsRepository } from '../../infrastructure/comments.repository';
 import { CommentLikesRepository } from '../../infrastructure/comment-likes.repository';
 
@@ -19,39 +18,54 @@ export class UpdateCommentLikeStatusUseCase
   implements ICommandHandler<UpdateCommentLikeStatusCommand, void>
 {
   constructor(
-    @InjectModel(CommentLike.name)
-    private readonly likeModel: CommentLikeModelType,
     private readonly commentLikesRepository: CommentLikesRepository,
-    private readonly commentRepository: CommentsRepository,
+    private readonly commentsRepository: CommentsRepository,
   ) {}
+
   async execute({
     commentId,
     userId,
     userLogin,
     likeStatus,
   }: UpdateCommentLikeStatusCommand): Promise<void> {
-    await this.commentRepository.checkCommentExistsOrError(commentId);
+    // 1. Проверяем, что комментарий существует
+    await this.commentsRepository.checkCommentExistsOrError(commentId);
 
+    // 2. Ищем существующий лайк
     const existing = await this.commentLikesRepository.findByCommentAndUser(
       commentId,
       userId,
     );
 
+    // 3. Если статус None → удаляем лайк
     if (likeStatus === LikeStatusTypes.None) {
-      if (existing) await this.commentLikesRepository.delete(existing);
+      if (existing) {
+        await this.commentLikesRepository.deleteLike(commentId, userId);
+      }
       return;
     }
+
+    const now = new Date().toISOString();
+
+    // 4. Если лайк существует → обновляем
     if (existing) {
-      existing.updateDetails(likeStatus);
-      await this.commentLikesRepository.save(existing);
-    } else {
-      const like = this.likeModel.createInstance(
+      await this.commentLikesRepository.updateLike({
         commentId,
         userId,
-        userLogin,
-        likeStatus,
-      );
-      await this.commentLikesRepository.save(like);
+        userLogin: existing.userLogin,
+        status: likeStatus,
+        createdAt: now, // время последнего действия
+      });
+      return;
     }
+
+    // 5. Если лайка нет → создаём
+    await this.commentLikesRepository.createLike({
+      commentId,
+      userId,
+      userLogin,
+      status: likeStatus,
+      createdAt: now,
+    });
   }
 }

@@ -45,9 +45,6 @@ export class ResendRegistrationUseCase
       newCode,
       newExpirationDate,
     );
-
-
     this.eventBus.publish(new RegistrationEmailRequestedEvent(email, newCode));
-    //await this.emailService.sendRegistrationEmail(email, newCode);
   }
 }

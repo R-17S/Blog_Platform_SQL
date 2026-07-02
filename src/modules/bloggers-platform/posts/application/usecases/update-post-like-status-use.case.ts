@@ -1,7 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-
-import { PostLike } from '../../domain/post.like-scheme';
-import type { PostLikeModelType } from '../../domain/post.like-scheme';
+import { PostLikeSqlEntity } from '../../domain/post.like-scheme';
 import { PostsRepository } from '../../infrastructure/posts.repository';
 import { PostLikesRepository } from '../../infrastructure/post-likes.repository';
 import { LikeStatusTypes } from '../../api/view-dto/posts.view-dto';
@@ -20,8 +18,6 @@ export class UpdatePostLikeStatusUseCase
   implements ICommandHandler<UpdatePostLikeStatusCommand, void>
 {
   constructor(
-    @InjectModel(PostLike.name)
-    private readonly likeModel: PostLikeModelType,
     private readonly postsRepository: PostsRepository,
     private readonly postLikesRepository: PostLikesRepository,
   ) {}
@@ -39,20 +35,27 @@ export class UpdatePostLikeStatusUseCase
     );
 
     if (likeStatus === LikeStatusTypes.None) {
-      if (existing) await this.postLikesRepository.delete(existing);
+      if (existing) await this.postLikesRepository.deleteLike(postId, userId);
       return;
     }
     if (existing) {
-      existing.updateDetails(likeStatus);
-      await this.postLikesRepository.save(existing);
+      await this.postLikesRepository.updateLike({
+        userId,
+        postId,
+        userLogin: existing.userLogin,
+        status: likeStatus,
+        createdAt: new Date().toISOString(),
+      });
+      return;
     } else {
-      const like = this.likeModel.createInstance(
+      const newLike: PostLikeSqlEntity = {
         postId,
         userId,
         userLogin,
-        likeStatus,
-      );
-      await this.postLikesRepository.save(like);
+        status: likeStatus,
+        createdAt: new Date().toISOString(),
+      };
+      await this.postLikesRepository.createLike(newLike);
     }
   }
 }

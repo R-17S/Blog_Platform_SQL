@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthController } from './api/auth.controller';
 import { AuthService } from './application/auth.service';
-// import { AuthQueryRepository } from './infrastructure/query/auth.query-repository';
+import { AuthQueryRepository } from './infrastructure/query/auth.query-repository';
 import { LocalStrategy } from './guards/local/local.strategy';
 import { JwtStrategy } from './guards/bearer/jwt.strategy';
 import { JwtModule, JwtService } from '@nestjs/jwt';
@@ -86,7 +86,7 @@ import { UserAccountsConfig } from './config/user-accounts.config';
     LogoutUserUseCase,
     RefreshTokensUseCase,
     //
-    // AuthQueryRepository,
+    AuthQueryRepository,
     LocalStrategy,
     JwtStrategy,
     JwtRefreshStrategy,

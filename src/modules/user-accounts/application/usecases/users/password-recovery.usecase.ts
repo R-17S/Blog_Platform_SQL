@@ -14,7 +14,6 @@ export class PasswordRecoveryUseCase
 {
   constructor(
     private readonly usersRepository: UsersRepository,
-    //private readonly emailService: EmailService,
     private readonly eventBus: EventBus,
   ) {}
   async execute({ email }: PasswordRecoveryCommand): Promise<void> {
@@ -31,6 +30,5 @@ export class PasswordRecoveryUseCase
       expirationDate,
     );
     this.eventBus.publish(new RecoveryEmailRequestedEvent(email, recoveryCode));
-    //await this.emailService.sendRecoveryEmail(email, recoveryCode);
   }
 }

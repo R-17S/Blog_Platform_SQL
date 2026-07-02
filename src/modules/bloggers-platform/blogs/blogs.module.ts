@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 
 // import { BlogsRepository } from './infrastructure/blogs.repository';
 // import { BlogsQueryRepository } from './infrastructure/query/blogs.query-repository';
-import { BlogsService } from './application/blogs.service';
 import { BlogsController } from './api/blogs.controller';
 
 @Module({

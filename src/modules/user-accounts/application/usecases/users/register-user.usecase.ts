@@ -2,8 +2,6 @@ import { CreateUserInputDto } from '../../../api/input-dto/users.input-dto';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { UsersRepository } from '../../../infrastructure/users.repository';
 import { ArgonService } from '../../argon2.service';
-
-
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { randomUUID } from 'node:crypto';
@@ -58,20 +56,15 @@ export class RegisterUserUseCase
       }).toISOString(),
       isConfirmed: false,
       recoveryCode: null,
+      recoveryExpiration: null,
       createdAt: new Date().toISOString(),
       deletedAt: null,
     };
-    console.log('🔥 [AuthService] user created:', newUser);
 
     await this.usersRepository.createUser(newUser);
-
-    // await this.emailService.sendRegistrationEmail(
-    //   input.email,
-    //   confirmationCode,
-    // );
     this.eventBus.publish(
       new RegistrationEmailRequestedEvent(input.email, confirmationCode),
     );
-    console.log('🔥 [AuthService] email sending triggered');
+    //console.log('🔥 [AuthService] email sending triggered');
   }
 }

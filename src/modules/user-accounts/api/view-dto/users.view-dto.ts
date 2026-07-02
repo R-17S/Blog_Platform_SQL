@@ -1,4 +1,4 @@
-import { UserDocument } from '../../domain/user.entity';
+import { UserSqlEntity } from '../../domain/user.entity';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
 import { OmitType } from '@nestjs/swagger';
 
@@ -6,11 +6,11 @@ export class UserViewModel {
   id: string;
   login: string;
   email: string;
-  createdAt: Date;
+  createdAt: string;
 
-  static mapToView(user: UserDocument): UserViewModel {
+  static mapToView(user: UserSqlEntity): UserViewModel {
     return {
-      id: user._id.toString(),
+      id: user.id,
       login: user.login,
       email: user.email,
       createdAt: user.createdAt,
@@ -20,18 +20,15 @@ export class UserViewModel {
 
 export class UsersViewPaginated extends PaginatedViewDto<UserViewModel[]> {}
 
-export class MeViewDto extends OmitType(UserViewModel, [
-  'createdAt',
-  'id',
-] as const) {
+export class MeViewDto extends OmitType(UserViewModel, ['createdAt', 'id'] as const) {
   userId: string;
 
-  static mapToView(user: UserDocument): MeViewDto {
+  static mapToView(user: UserViewModel): MeViewDto {
     const dto = new MeViewDto();
 
     dto.email = user.email;
     dto.login = user.login;
-    dto.userId = user._id.toString();
+    dto.userId = user.id;
 
     return dto;
   }

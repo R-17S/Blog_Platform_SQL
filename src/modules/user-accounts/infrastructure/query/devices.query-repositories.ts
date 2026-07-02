@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-
-import {  SecurityDeviceSqlEntity } from '../../domain/securityDevices.entity';
+import { SecurityDeviceSqlEntity } from '../../domain/securityDevices.entity';
 import { DevicesViewModel } from '../../api/view-dto/securityDevices.view-dto';
 import { Pool } from 'pg';
 
@@ -20,12 +19,7 @@ export class SecurityDevicesQueryRepository {
     );
 
     return result.rows.map((device) =>
-      DevicesViewModel.mapToView({
-        ip: device.ip,
-        title: device.title,
-        lastActiveDate: device.lastActiveDate,
-        deviceId: device.deviceId,
-      }),
+        DevicesViewModel.mapToView(device),
     );
   }
 }

@@ -1,6 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Blog } from '../../domain/blog.entity';
-import type { BlogModelType } from '../../domain/blog.entity';
+import { BlogSqlEntity } from '../../domain/blog.entity';
 import { BlogsRepository } from '../../infrastructure/blogs.repository';
 import { UpdateBlogDto } from '../../dto/update-blog.dto';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
@@ -18,7 +17,6 @@ export class UpdateBlogUseCase
   implements ICommandHandler<UpdateBlogCommand, void>
 {
   constructor(
-    @InjectModel(Blog.name) private readonly blogModel: BlogModelType,
     private readonly blogsRepository: BlogsRepository,
   ) {}
   async execute({ id, input }: UpdateBlogCommand): Promise<void> {
@@ -29,7 +27,16 @@ export class UpdateBlogUseCase
         message: 'Blog not found',
       });
 
-    blog.updateDetails(input.name, input.description, input.websiteUrl);
-    await this.blogsRepository.save(blog);
+    // 2. Создаём обновлённый объект
+    const updated: BlogSqlEntity = {
+      ...blog,
+      name: input.name,
+      description: input.description,
+      websiteUrl: input.websiteUrl,
+      updatedAt: new Date().toISOString(),
+    };
+
+    // 3. Сохраняем
+    await this.blogsRepository.updateBlog(updated);
   }
 }
