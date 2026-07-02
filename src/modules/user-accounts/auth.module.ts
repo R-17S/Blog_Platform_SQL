@@ -26,9 +26,11 @@ import { RefreshTokensUseCase } from './application/usecases/refresh-token.useca
 import { PassportModule } from '@nestjs/passport';
 import { CoreConfig } from '../../core/core.config';
 import { UserAccountsConfig } from './config/user-accounts.config';
+import { PgModule } from '../../pg.module';
 
 @Module({
   imports: [
+    PgModule,
     CqrsModule,
     JwtModule,
     UserAccountsModule,

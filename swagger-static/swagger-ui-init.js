@@ -161,6 +161,25 @@ window.onload = function() {
           ]
         }
       },
+      "/api/auth/me": {
+        "get": {
+          "operationId": "AuthController_me",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": ""
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "tags": [
+            "Auth"
+          ]
+        }
+      },
       "/api/auth/password-recovery": {
         "post": {
           "operationId": "AuthController_passwordRecovery",

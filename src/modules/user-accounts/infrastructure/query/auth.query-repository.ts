@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { MeViewDto } from '../../api/view-dto/users.view-dto';
+import { MeViewDto, UserViewModel } from '../../api/view-dto/users.view-dto';
 import { DomainException } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
 import { Pool } from 'pg';
@@ -9,15 +9,16 @@ export class AuthQueryRepository {
   constructor(@Inject('PG_POOL') private readonly pool: Pool) {}
 
   async me(userId: string): Promise<MeViewDto> {
-    const user = await this.pool.query(
+    const result = await this.pool.query<UserViewModel>(
       `
-    SELECT "id", "email", "login"
+    SELECT "id", "email", "login", "createdAt"
     FROM "Users"
     WHERE "id" = $1 AND "deletedAt" IS NULL
     `,
       [userId],
     );
-    if (!user.rows[0]) {
+    const user = result.rows[0];
+    if (!user) {
       throw new DomainException({
         code: DomainExceptionCode.Unauthorized,
         message: 'Invalid username or password',
