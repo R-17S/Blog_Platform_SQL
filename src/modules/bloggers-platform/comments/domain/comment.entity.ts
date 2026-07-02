@@ -77,6 +77,9 @@ export type CommentSqlEntity = {
   userId: string;
   userLogin: string;
 
+  likesCount: number;
+  dislikesCount: number;
+
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;

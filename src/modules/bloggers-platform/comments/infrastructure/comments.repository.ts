@@ -13,10 +13,10 @@ export class CommentsRepository {
       `
       INSERT INTO "Comments" (
         "id", "postId", "content",
-        "userId", "userLogin",
+        "userId", "userLogin", "likesCount", "dislikesCount",
         "createdAt", "updatedAt", "deletedAt"
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
       `,
       [
         comment.id,
@@ -24,6 +24,8 @@ export class CommentsRepository {
         comment.content,
         comment.userId,
         comment.userLogin,
+        comment.likesCount,
+        comment.dislikesCount,
         comment.createdAt,
         comment.updatedAt,
         comment.deletedAt,

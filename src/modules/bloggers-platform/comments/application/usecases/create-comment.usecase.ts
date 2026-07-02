@@ -1,5 +1,4 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-
 import { CommentsRepository } from '../../infrastructure/comments.repository';
 import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
 import { CreateCommentDto } from '../../dto/create-comment.dto';
@@ -40,6 +39,8 @@ export class CreateCommentUseCase
       content: input.content,
       userId,
       userLogin,
+      likesCount: 0,
+      dislikesCount: 0,
       createdAt: now,
       updatedAt: now,
       deletedAt: null,

@@ -27,8 +27,9 @@ export class UsersRepository {
   }
 
   async createUser(user: UserSqlEntity): Promise<void> {
-    await this.pool.query(
-      `
+    try {
+      await this.pool.query(
+        `
           INSERT INTO "Users" (
             "id",
             "login",
@@ -40,24 +41,28 @@ export class UsersRepository {
             "recoveryCode",
             "recoveryExpiration",
             "createdAt",
-            "deletedAt",
+            "deletedAt"
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         `,
-      [
-        user.id,
-        user.login,
-        user.email,
-        user.passwordHash,
-        user.confirmationCode,
-        user.confirmationExpiration,
-        user.isConfirmed,
-        user.recoveryCode,
-        user.recoveryExpiration,
-        user.createdAt,
-        user.deletedAt,
-      ],
-    );
+        [
+          user.id,
+          user.login,
+          user.email,
+          user.passwordHash,
+          user.confirmationCode,
+          user.confirmationExpiration,
+          user.isConfirmed,
+          user.recoveryCode,
+          user.recoveryExpiration,
+          user.createdAt,
+          user.deletedAt,
+        ],
+      );
+    } catch (error) {
+      console.error('🔥 Ошибка при записи пользователя в БД:', error);
+      throw error;
+    }
   }
 
   async findByLogin(login: string): Promise<UserSqlEntity | null> {
