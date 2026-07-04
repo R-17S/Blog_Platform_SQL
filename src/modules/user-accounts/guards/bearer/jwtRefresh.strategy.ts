@@ -6,7 +6,6 @@ import { UserCookiesDto } from '../dto/user-cookies.dto';
 import { AuthService } from '../../application/auth.service';
 import { CoreConfig } from '../../../../core/core.config';
 
-
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(
   Strategy,

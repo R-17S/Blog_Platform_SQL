@@ -39,7 +39,7 @@ export class SecurityDevicesRepository {
   ): Promise<string[]> {
     const result = await this.pool.query<{ deviceId: string }>(
       `
-      SELECT "deiceId"
+      SELECT "deviceId"
       FROM "SecurityDevices"
       WHERE "userId" = $1 AND "deviceId" <> $2
       `,
