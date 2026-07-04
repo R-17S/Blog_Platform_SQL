@@ -32,14 +32,14 @@ import { PgModule } from './pg.module';
         },
       ],
     }),
-    ThrottlerModule.forRoot({
-      throttlers: [
-        {
-          ttl: 10000,
-          limit: 5,
-        },
-      ],
-    }), // окно в секундах // максимум запросов
+    // ThrottlerModule.forRoot({
+    //   throttlers: [
+    //     {
+    //       ttl: 10000,
+    //       limit: 5,
+    //     },
+    //   ],
+    // }), // окно в секундах // максимум запросов
     // BloggersPlatformModule,
     UserAccountsModule,
     AuthModule,
