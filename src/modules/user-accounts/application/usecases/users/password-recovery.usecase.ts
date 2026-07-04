@@ -22,13 +22,13 @@ export class PasswordRecoveryUseCase
     if (!user) return;
 
     const recoveryCode = randomUUID();
-    const expirationDate = add(new Date(), { hours: 24 });
-
+    const recoveryExpiration = add(new Date(), { hours: 24 });
     await this.usersRepository.updateRecoveryData(
       user.id,
       recoveryCode,
-      expirationDate,
+      recoveryExpiration,
     );
+
     this.eventBus.publish(new RecoveryEmailRequestedEvent(email, recoveryCode));
   }
 }

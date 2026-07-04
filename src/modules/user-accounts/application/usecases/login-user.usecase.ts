@@ -52,13 +52,25 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
       createdAt: new Date().toISOString(),
     };
 
-    await this.securityDevicesRepository.create(device);
-
-    const accessToken = this.accessTokenContext.sign({
-      id: userId,
-      login: user.login,
-    });
-
+    try {
+      await this.securityDevicesRepository.create(device);
+      console.log('🔥 Сессия создана успешно!');
+    } catch (dbError) {
+      console.error('🔥 Ошибка при создании сессии в базе данных:', dbError);
+    }
+    let accessToken: string;
+    try {
+      // 2. Присваиваем значение внутри try (уже БЕЗ слова const)
+      accessToken = this.accessTokenContext.sign({
+        id: userId,
+        login: user.login,
+      });
+      console.log('Куда ты делся', accessToken);
+    } catch (e) {
+      console.error('🔥 Ошибка генерации accessToken:', e);
+      throw e;
+    }
     return { accessToken, refreshToken };
+
   }
 }

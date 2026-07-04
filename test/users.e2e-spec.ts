@@ -25,7 +25,7 @@ describe('users', () => {
         .overrideProvider(ACCESS_TOKEN_STRATEGY_INJECT_TOKEN)
         .useValue(
           new JwtService({
-            secret: 'access-token-secret', //TODO: move to env. will be in the following lessons
+            secret: process.env.ACCESS_TOKEN_SECRET || 'secretOrKey_forTest', //TODO: move to env. will be in the following lessons
             signOptions: { expiresIn: '2s' },
           }),
         );

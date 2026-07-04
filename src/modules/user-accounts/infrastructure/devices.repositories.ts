@@ -10,7 +10,7 @@ export class SecurityDevicesRepository {
     await this.pool.query(
       `
       INSERT INTO "SecurityDevices" 
-        (id, userId, deviceId, ip, title, lastActiveDate, createdAt)
+        ("id", "userId", "deviceId", "ip", "title", "lastActiveDate", "createdAt")
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       `,
       [

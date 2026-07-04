@@ -53,22 +53,24 @@ export class UsersTestManager {
     password: string,
     statusCode: number = HttpStatus.OK,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    // console.log(
-    //   '🔥 [TestManager] данные вообще приходят ',
-    //   loginOrEmail,
-    //   password,
-    // );
+    console.log(
+      '🔥 [TestManager] данные вообще приходят ',
+      loginOrEmail,
+      password,
+    );
     const response = await request(this.app.getHttpServer())
       .post(`/${GLOBAL_PREFIX}/auth/login`)
       .send({ loginOrEmail, password })
       .expect(statusCode);
     expect(response.status).toBe(statusCode);
 
+
     const { accessToken } = response.body as LoginResponseBody;
     const refreshToken = response.headers['set-cookie'][0]
       .split(';')[0]
       .replace('refreshToken=', '');
-    // console.log('🔥 [Login] set-cookie:', response.headers['set-cookie']);
+    console.log('🔥 [Login] set-cookie:', response.headers['set-cookie']);
+    console.log('🔥 [Login] accessToken:', response.body);
     return { accessToken, refreshToken };
   }
 

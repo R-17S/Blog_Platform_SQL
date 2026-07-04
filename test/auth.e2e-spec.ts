@@ -8,6 +8,8 @@ import { GLOBAL_PREFIX } from '../src/setup/global-prefix.setup';
 import { UserViewModel } from '../src/modules/user-accounts/api/view-dto/users.view-dto';
 import { EmailService } from '../src/modules/user-accounts/application/email.service';
 import { delay } from './helpers/delay';
+import { REFRESH_TOKEN_STRATEGY_INJECT_TOKEN } from '../src/modules/user-accounts/constans/auth-tokens.inject-constants';
+import { JwtService } from '@nestjs/jwt';
 
 describe('auth', () => {
   let app: INestApplication;
@@ -15,20 +17,14 @@ describe('auth', () => {
 
   beforeAll(async () => {
     const result = await initSettings((moduleBuilder) => {
-      // moduleBuilder
-      //   .overrideProvider(REFRESH_TOKEN_STRATEGY_INJECT_TOKEN)
-      //   .useFactory({
-      //     factory: (
-      //       coreConfig: CoreConfig,
-      //       userAccountsConfig: UserAccountsConfig,
-      //     ) => {
-      //       return new JwtService({
-      //         secret: coreConfig.refreshTokenSecret,
-      //         signOptions: { expiresIn: '2s' },
-      //       });
-      //     },
-      //     inject: [CoreConfig, UserAccountsConfig],
-      //   });
+      moduleBuilder
+        .overrideProvider(REFRESH_TOKEN_STRATEGY_INJECT_TOKEN)
+        .useValue(
+          new JwtService({
+            secret: process.env.REFRESH_TOKEN_SECRET || 'secretOrKey_forTest',
+            signOptions: { expiresIn: '2s' },
+          }),
+        );
 
       moduleBuilder.overrideProvider(EmailService).useValue({
         sendRegistrationEmail: jest.fn().mockResolvedValue(true),

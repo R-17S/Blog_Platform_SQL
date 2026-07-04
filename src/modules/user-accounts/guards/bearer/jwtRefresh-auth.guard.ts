@@ -5,9 +5,10 @@ import { DomainExceptionCode } from '../../../../core/exceptions/domain-exceptio
 
 @Injectable()
 export class JwtRefreshAuthGuard extends AuthGuard('jwt-refresh') {
-  handleRequest<UserCookiesDto>(err, user: UserCookiesDto) {
+  handleRequest<UserCookiesDto>(err, user: UserCookiesDto, info) {
     console.log(err);
     console.log('user', user);
+    console.log('🔥 [Guard] info:', info);
     if (err || !user) {
       // здесь можно выбросить любую свою ошибку
       throw new DomainException({

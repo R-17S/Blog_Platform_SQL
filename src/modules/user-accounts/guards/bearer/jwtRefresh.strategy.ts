@@ -5,8 +5,7 @@ import { Request } from 'express';
 import { UserCookiesDto } from '../dto/user-cookies.dto';
 import { AuthService } from '../../application/auth.service';
 import { CoreConfig } from '../../../../core/core.config';
-import { DomainException } from '../../../../core/exceptions/domain-exceptions';
-import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
+
 
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(
@@ -23,6 +22,10 @@ export class JwtRefreshStrategy extends PassportStrategy(
       jwtFromRequest: ExtractJwt.fromExtractors([
         (req: Request) => {
           console.log('🔥 [Extractor] req.headers.cookie:', req.headers.cookie);
+          console.log(
+            '🔥 [Strategy] refreshTokenSecret:',
+            coreConfig.refreshTokenSecret,
+          );
           const raw = req.headers.cookie;
           if (!raw) return null;
 

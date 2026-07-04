@@ -54,6 +54,8 @@ export class AuthService {
 
     const tokenIssuedAt = new Date(iat * 1000).getTime();
     const deviceLastActive = new Date(device.lastActiveDate).getTime();
+    console.log("🔥 tokenIssuedAt:   ", tokenIssuedAt);
+    console.log("🔥 deviceLastActive:", deviceLastActive);
     if (tokenIssuedAt !== deviceLastActive)
       throw new DomainException({
         code: DomainExceptionCode.Unauthorized,

@@ -9,7 +9,7 @@ export class UsersRepository {
   async findById(id: string): Promise<UserSqlEntity | null> {
     const result = await this.pool.query<UserSqlEntity>(
       `
-      SELECT id, login, email, passwordHash, createdAt, deletedAt
+      SELECT "id", "login", "email", "passwordHash", "createdAt", "deletedAt"
       FROM "Users"
       WHERE id = $1
     `,
@@ -153,7 +153,7 @@ export class UsersRepository {
     UPDATE "Users"
     SET "passwordHash" = $1,
         "recoveryCode" = null,
-        "recoveryExpiration" = null,
+        "recoveryExpiration" = null
     WHERE id = $2
     `,
       [newHash, userId],
@@ -163,16 +163,16 @@ export class UsersRepository {
   async updateRecoveryData(
     userId: string,
     recoveryCode: string,
-    expirationDate: Date,
+    recoveryExpiration: Date,
   ) {
     await this.pool.query(
       `
       UPDATE "Users"
       SET "recoveryCode" = $1,
-          "expirationDate" = $2,
+          "recoveryExpiration" = $2
       WHERE id = $3
       `,
-      [recoveryCode, expirationDate, userId],
+      [recoveryCode, recoveryExpiration, userId],
     );
   }
 }

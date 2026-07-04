@@ -66,6 +66,10 @@ export class CoreConfig {
     console.log('DATABASE_URL from process.env:', process.env.DATABASE_URL);
     this.accessTokenSecret = this.configService.get('ACCESS_TOKEN_SECRET');
     this.refreshTokenSecret = this.configService.get('REFRESH_TOKEN_SECRET');
+    console.log(
+      'REFRESH_TOKEN_SECRET from process.env:',
+      process.env.REFRESH_TOKEN_SECRET,
+    );
     this.sendInternalServerErrorDetails =
       configValidationUtility.convertToBoolean(
         this.configService.get('SEND_INTERNAL_SERVER_ERROR_DETAILS'),
@@ -84,5 +88,3 @@ export class CoreConfig {
     configValidationUtility.validateConfig(this);
   }
 }
-
-
