@@ -2,10 +2,9 @@ import { configModule } from './config-dynamic-module';
 import { DynamicModule, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-// import { BloggersPlatformModule } from './modules/bloggers-platform/bloggers-platform.module';
+import { BloggersPlatformModule } from './modules/bloggers-platform/bloggers-platform.module';
 import { TestingModule } from './modules/testing/testing.module';
 import { UserAccountsModule } from './modules/user-accounts/user-accounts.module';
-
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
@@ -32,15 +31,15 @@ import { PgModule } from './pg.module';
         },
       ],
     }),
-    // ThrottlerModule.forRoot({
-    //   throttlers: [
-    //     {
-    //       ttl: 10000,
-    //       limit: 5,
-    //     },
-    //   ],
-    // }), // окно в секундах // максимум запросов
-    // BloggersPlatformModule,
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 10000,
+          limit: 5,
+        },
+      ],
+    }), // окно в секундах // максимум запросов
+    BloggersPlatformModule,
     UserAccountsModule,
     AuthModule,
     EmailModule,
@@ -59,10 +58,10 @@ import { PgModule } from './pg.module';
       provide: APP_FILTER,
       useClass: DomainHttpExceptionsFilter,
     },
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: ThrottlerGuard,
-    // },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {

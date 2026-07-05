@@ -39,6 +39,11 @@ export class UsersQueryRepository {
     const sortDirection =
       params.sortDirection === SortDirection.Asc ? 'ASC' : 'DESC';
 
+    const orderByClause =
+      sortBy === 'login' || sortBy === 'email'
+        ? `ORDER BY "${sortBy}" COLLATE "C" ${sortDirection}`
+        : `ORDER BY "${sortBy}" ${sortDirection}`;
+
     const offset = params.calculateSkip();
     const limit = params.pageSize;
 
@@ -57,7 +62,7 @@ export class UsersQueryRepository {
       SELECT *
       FROM "Users"
       ${where}
-      ORDER BY "${sortBy}" ${sortDirection}
+      ${orderByClause}
       OFFSET ${offset}
       LIMIT ${limit}
     `;

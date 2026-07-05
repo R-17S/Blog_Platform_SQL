@@ -14,11 +14,11 @@ export class PaginatedViewDto<T> {
     totalCount: number;
   }): PaginatedViewDto<T> {
     return {
-      totalCount: data.totalCount,
       pagesCount: Math.ceil(data.totalCount / data.pageSize),
       page: data.page,
       pageSize: data.pageSize,
       items: data.items,
+      totalCount: data.totalCount,
     };
   }
 }

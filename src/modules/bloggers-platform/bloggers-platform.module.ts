@@ -1,8 +1,8 @@
 import { BlogsController } from './blogs/api/blogs.controller';
 import { PostsController } from './posts/api/posts.controller';
 import { CommentsController } from './comments/api/comments.controller';
-// import { BlogsRepository } from './blogs/infrastructure/blogs.repository';
-// import { BlogsQueryRepository } from './blogs/infrastructure/query/blogs.query-repository';
+import { BlogsRepository } from './blogs/infrastructure/blogs.repository';
+import { BlogsQueryRepository } from './blogs/infrastructure/query/blogs.query-repository';
 import { PostsRepository } from './posts/infrastructure/posts.repository';
 import { PostsQueryRepository } from './posts/infrastructure/query/posts.query-repository';
 import { PostLikesQueryRepository } from './posts/infrastructure/query/posts.likes.query-repository';
@@ -24,15 +24,15 @@ import { UpdateCommentLikeStatusUseCase } from './comments/application/usecases/
 import { PostLikesRepository } from './posts/infrastructure/post-likes.repository';
 import { CommentLikesRepository } from './comments/infrastructure/comment-likes.repository';
 import { CqrsModule } from '@nestjs/cqrs';
+import { PgModule } from '../../pg.module';
 
 @Module({
-  imports: [CqrsModule],
+  imports: [CqrsModule, PgModule],
   controllers: [BlogsController, PostsController, CommentsController],
   providers: [
     // Blogs
-    // BlogsRepository,
-    // BlogsQueryRepository,
-    //BlogsService,
+    BlogsRepository,
+    BlogsQueryRepository,
     CreateBlogUseCase,
     UpdateBlogUseCase,
     DeleteBlogUseCase,
@@ -40,7 +40,6 @@ import { CqrsModule } from '@nestjs/cqrs';
     // Posts
     PostsRepository,
     PostsQueryRepository,
-    //PostsService,
     CreatePostUseCase,
     UpdatePostUseCase,
     DeletePostUseCase,
@@ -59,10 +58,8 @@ import { CqrsModule } from '@nestjs/cqrs';
     CommentLikesRepository,
   ],
   exports: [
-    // BlogsRepository,
-    //BlogsService,
+    BlogsRepository,
     PostsRepository,
-    //PostsService,
     CommentsRepository,
     CommentsQueryRepository,
   ],

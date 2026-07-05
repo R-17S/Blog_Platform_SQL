@@ -22,7 +22,7 @@ import { SkipThrottle } from '@nestjs/throttler';
 
 @UseGuards(BasicAuthGuard)
 @SkipThrottle() // можно ставить над классом и все методы контроллера будут требовать BasicAuth.
-@Controller('users')
+@Controller('sa/users')
 export class UsersController {
   constructor(
     private readonly commandBus: CommandBus,

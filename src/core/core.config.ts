@@ -58,12 +58,15 @@ export class CoreConfig {
       NODE_ENV: process.env.NODE_ENV,
     });
     this.port = Number(this.configService.get('PORT'));
-    this.mongoURI = this.configService.get('DATABASE_URL');
+    this.mongoURI = this.configService.get('DATABASE_URL_NEON');
     console.log(
-      'DATABASE_URL from configService:',
-      this.configService.get('DATABASE_URL'),
+      'DATABASE_URL_NEON from configService:',
+      this.configService.get('DATABASE_URL_NEON'),
     );
-    console.log('DATABASE_URL from process.env:', process.env.DATABASE_URL);
+    console.log(
+      'DATABASE_URL_NEON from process.env:',
+      process.env.DATABASE_URL_NEON,
+    );
     this.accessTokenSecret = this.configService.get('ACCESS_TOKEN_SECRET');
     this.refreshTokenSecret = this.configService.get('REFRESH_TOKEN_SECRET');
     console.log(
