@@ -13,9 +13,6 @@ import { Module } from '@nestjs/common';
 import { CreateBlogUseCase } from './blogs/application/usecases/create-blog.usecase';
 import { UpdateBlogUseCase } from './blogs/application/usecases/update-blog.usecase';
 import { DeleteBlogUseCase } from './blogs/application/usecases/delete-blog.usecase';
-import { CreatePostUseCase } from './posts/application/usecases/create-post.usecase';
-import { UpdatePostUseCase } from './posts/application/usecases/update-post.usecase';
-import { DeletePostUseCase } from './posts/application/usecases/delete-post.usecase';
 import { CreateCommentUseCase } from './comments/application/usecases/create-comment.usecase';
 import { UpdateCommentUseCase } from './comments/application/usecases/update-comment.usecase';
 import { DeleteCommentUseCase } from './comments/application/usecases/delete-comment.usecase';
@@ -25,10 +22,21 @@ import { PostLikesRepository } from './posts/infrastructure/post-likes.repositor
 import { CommentLikesRepository } from './comments/infrastructure/comment-likes.repository';
 import { CqrsModule } from '@nestjs/cqrs';
 import { PgModule } from '../../pg.module';
+import { UpdatePostByBlogIdUseCase } from './blogs/application/usecases/update-postByBlogId.usecase';
+import { DeletePostByBlogIdUseCase } from './blogs/application/usecases/delete-postByBlogId.usecase';
+import { UpdatePostUseCase } from './posts/application/usecases/update-post.usecase';
+import { DeletePostUseCase } from './posts/application/usecases/delete-post.usecase';
+import { CreatePostUseCase } from './posts/application/usecases/create-post.usecase';
+import { BlogsSuperController } from './blogs/api/blogs-sa.controller';
 
 @Module({
   imports: [CqrsModule, PgModule],
-  controllers: [BlogsController, PostsController, CommentsController],
+  controllers: [
+    BlogsController,
+    PostsController,
+    CommentsController,
+    BlogsSuperController,
+  ],
   providers: [
     // Blogs
     BlogsRepository,
@@ -41,7 +49,9 @@ import { PgModule } from '../../pg.module';
     PostsRepository,
     PostsQueryRepository,
     CreatePostUseCase,
+    UpdatePostByBlogIdUseCase,
     UpdatePostUseCase,
+    DeletePostByBlogIdUseCase,
     DeletePostUseCase,
     UpdatePostLikeStatusUseCase,
     PostLikesQueryRepository,

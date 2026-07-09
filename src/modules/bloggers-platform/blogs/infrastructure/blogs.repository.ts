@@ -11,7 +11,7 @@ export class BlogsRepository {
   async createBlog(blog: BlogSqlEntity): Promise<void> {
     await this.pool.query(
       `
-    INSERT INTO "Blog" (
+    INSERT INTO "Blogs" (
       "id", "name", "description",
       "websiteUrl", "isMembership", "createdAt",
       "updatedAt", "deletedAt"
@@ -33,7 +33,7 @@ export class BlogsRepository {
 
   async updateBlog(blog: BlogSqlEntity): Promise<void> {
     await this.pool.query(
-      `UPDATE "Blog"
+      `UPDATE "Blogs"
       SET
       "name" = $2,
       "description" = $3,
@@ -49,8 +49,8 @@ export class BlogsRepository {
     const result = await this.pool.query<BlogSqlEntity>(
       `
       SELECT *
-      FROM "Blog"
-      WHERE id = $1 AND "deletedAt" = IS NULL
+      FROM "Blogs"
+      WHERE id = $1 AND "deletedAt"  IS NULL
       `,
       [id],
     );
@@ -61,7 +61,7 @@ export class BlogsRepository {
     const result = await this.pool.query<{ name: string }>(
       `
       SELECT "name"
-      FROM "Blog"
+      FROM "Blogs"
       WHERE "id" = $1 AND "deletedAt" IS NULL 
       `,
       [id],
@@ -79,9 +79,10 @@ export class BlogsRepository {
 
   async checkBlogExistsOrError(id: string): Promise<void> {
     const exists = await this.pool.query(
-      `SELECT 1
-      FROM "Blog"
-      WHERE id = $1 AND "deletedAt" = IS NULL
+      `
+      SELECT 1
+      FROM "Blogs"
+      WHERE id = $1 AND "deletedAt"  IS NULL
       `,
       [id],
     );
@@ -96,7 +97,7 @@ export class BlogsRepository {
   async softDelete(id: string): Promise<void> {
     await this.pool.query(
       `
-        UPDATE "Blog"
+        UPDATE "Blogs"
         SET "deletedAt" = NOW()
         WHERE "id" = $1
        `,

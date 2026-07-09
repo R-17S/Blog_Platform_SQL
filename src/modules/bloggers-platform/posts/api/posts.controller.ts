@@ -25,8 +25,6 @@ import { CommentInputQuery } from '../../comments/api/input-dto/get-comments-que
 import { CommentsQueryRepository } from '../../comments/infrastructure/query/comments.query-repository';
 import { CreatePostCommand } from '../application/usecases/create-post.usecase';
 import { CommandBus } from '@nestjs/cqrs';
-import { UpdatePostCommand } from '../application/usecases/update-post.usecase';
-import { DeletePostCommand } from '../application/usecases/delete-post.usecase';
 import { JwtAuthGuard } from '../../../user-accounts/guards/bearer/jwt-auth.guard';
 import { ExtractUserFromRequest } from '../../../user-accounts/guards/decorators/param/extract-user-from-request.decorator';
 import { UserContextDto } from '../../../user-accounts/guards/dto/user-context.dto';
@@ -38,6 +36,8 @@ import { UpdatePostLikeStatusCommand } from '../application/usecases/update-post
 import { JwtOptionalAuthGuard } from '../../../user-accounts/guards/bearer/jwt-optional-auth.guard';
 import { ExtractUserIfExistsFromRequest } from '../../../user-accounts/guards/decorators/param/extract-user-if-exists-from-request.decorator';
 import { SkipThrottle } from '@nestjs/throttler';
+import { DeletePostCommand } from '../application/usecases/delete-post.usecase';
+import { UpdatePostCommand } from '../application/usecases/update-post.usecase';
 
 @SkipThrottle()
 @Controller('posts')

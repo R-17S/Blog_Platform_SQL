@@ -3,12 +3,13 @@ import { PostInputQuery } from '../../api/input-dto/get-posts-query-params.input
 import {
   PostsViewPaginated,
   PostViewModel,
+  PostWithBlogNameSqlEntity,
 } from '../../api/view-dto/posts.view-dto';
 import { PostLikesQueryRepository } from './posts.likes.query-repository';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { Pool } from 'pg';
-import { PostSqlEntity } from '../../domain/post.entity';
+import { SortDirection } from '../../../../../core/dto/base.query-params.input-dto';
 
 @Injectable()
 export class PostsQueryRepository {
@@ -21,8 +22,25 @@ export class PostsQueryRepository {
     params: PostInputQuery,
     userId?: string,
   ): Promise<PostsViewPaginated> {
-    const filter = `p."blogId" = $1 AND p."deletedAt" IS NULL`;
+    const filter = `p."deletedAt" IS NULL`;
+    const allowedSortBy = [
+      'id',
+      'title',
+      'shortDescription',
+      'content',
+      'likesCount',
+      'dislikesCount',
+      'createdAt',
+      'blogName',
+    ];
+    const sortBy = allowedSortBy.includes(params.sortBy)
+      ? params.sortBy
+      : 'createdAt';
 
+    const orderByColumn = sortBy === 'blogName' ? `b.name` : `p."${sortBy}"`;
+
+    const sortDirection =
+      params.sortDirection === SortDirection.Asc ? 'ASC' : 'DESC';
     const totalCountResult = await this.pool.query<{ count: string }>(
       `
         SELECT COUNT(*)
@@ -31,17 +49,13 @@ export class PostsQueryRepository {
     );
     const totalCount = Number(totalCountResult.rows[0].count);
 
-    const sortOptions = params.SortOptions(params.sortBy);
-    const orderByClause = Object.entries(sortOptions)
-      .map(([key, value]) => `"${key}" ${value}`)
-      .join(', ');
-
     const query = `
-      SELECT *
+      SELECT p.*, b.name AS "blogName"
       FROM "Posts" p
+      INNER JOIN "Blogs" b ON p."blogId" = b.id
       WHERE ${filter}
-      ORDER BY ${orderByClause}
-      LIMIT $2 OFFSET $3
+      ORDER BY ${orderByColumn} ${sortDirection}
+      LIMIT $1 OFFSET $2
     `;
 
     const postsResult = await this.pool.query(query, [
@@ -68,11 +82,12 @@ export class PostsQueryRepository {
     id: string,
     userId?: string,
   ): Promise<PostViewModel> {
-    const result = await this.pool.query<PostSqlEntity>(
+    const result = await this.pool.query<PostWithBlogNameSqlEntity>(
       `
-      SELECT *
-      FROM "Posts"
-      WHERE "id" = $1 AND "deletedAt" IS NULL
+        SELECT p.*, b.name AS "blogName"
+        FROM "Posts" p
+        INNER JOIN "Blogs" b ON p."blogId" = b.id
+        WHERE p."id" = $1 AND p."deletedAt" IS NULL
       `,
       [id],
     );
@@ -98,26 +113,42 @@ export class PostsQueryRepository {
     params: PostInputQuery,
     userId?: string,
   ): Promise<PostsViewPaginated> {
-    const { sortBy, sortDirection, pageSize, pageNumber } = params;
+    const { pageSize, pageNumber } = params;
     const filter = `p."blogId" = $1 AND p."deletedAt" IS NULL`;
     const offset = params.calculateSkip();
-    // тут получил общее количество
+
     const totalCountResult = await this.pool.query<{ count: string }>(
-      `
+        `
       SELECT COUNT(*)
-      FROM "Posts"
+      FROM "Posts" p
       WHERE ${filter}
       `,
-      [id],
-    );
-    const totalCount = Number(totalCountResult.rows[0].count);
+        [id],
+      );
+      const totalCount = Number(totalCountResult.rows[0].count);
+
+    const allowedSortBy = [
+      'id',
+      'title',
+      'shortDescription',
+      'content',
+      'likesCount',
+      'dislikesCount',
+      'createdAt',
+    ];
+    const sortBy = allowedSortBy.includes(params.sortBy)
+      ? params.sortBy
+      : 'createdAt';
+    const sortDirection =
+      params.sortDirection === SortDirection.Asc ? 'ASC' : 'DESC';
     // получение самих постов с пагинацией и сортировкой
-    const postsResult = await this.pool.query(
+    const postsResult = await this.pool.query<PostWithBlogNameSqlEntity>(
       `
-      SELECT *
-      FROM "Posts"
-      WHERE ${filter}
-      ORDER BY "${sortBy}" ${sortDirection}
+        SELECT p.*, b.name AS "blogName" 
+        FROM "Posts" p
+        INNER JOIN "Blogs" b ON p."blogId" = b.id
+        WHERE ${filter}
+        ORDER BY p."${sortBy}" ${sortDirection} 
       LIMIT $2 OFFSET $3
       `,
       [id, pageSize, offset],

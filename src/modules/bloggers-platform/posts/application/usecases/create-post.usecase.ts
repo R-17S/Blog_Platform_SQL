@@ -23,9 +23,7 @@ export class CreatePostUseCase
 
   async execute(command: CreatePostCommand): Promise<string> {
     const { title, shortDescription, content, blogId } = command;
-
-    // 1. Проверяем, что блог существует и получаем blogName
-    const blogName = await this.blogsRepository.getBlogNameOrError(blogId);
+    await this.blogsRepository.checkBlogExistsOrError(blogId);
 
     // 2. Создаём SQL‑сущность (плоский объект)
     const now = new Date().toISOString();
@@ -35,7 +33,6 @@ export class CreatePostUseCase
       shortDescription,
       content,
       blogId,
-      blogName,
       likesCount: 0,
       dislikesCount: 0,
       createdAt: now,

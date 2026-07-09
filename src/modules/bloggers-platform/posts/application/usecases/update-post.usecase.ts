@@ -40,9 +40,6 @@ export class UpdatePostUseCase
     post.content = input.content;
     post.blogId = input.blogId;
 
-    // 4. Обновляем blogName (если блог поменялся)
-    post.blogName = await this.blogsRepository.getBlogNameOrError(input.blogId);
-
     // 5. Обновляем updatedAt
     post.updatedAt = new Date().toISOString();
 

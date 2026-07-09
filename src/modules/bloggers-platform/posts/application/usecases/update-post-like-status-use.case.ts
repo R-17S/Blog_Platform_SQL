@@ -24,7 +24,6 @@ export class UpdatePostLikeStatusUseCase
   async execute({
     postId,
     userId,
-    userLogin,
     likeStatus,
   }: UpdatePostLikeStatusCommand): Promise<void> {
     await this.postsRepository.checkPostExistsOrError(postId);
@@ -42,7 +41,6 @@ export class UpdatePostLikeStatusUseCase
       await this.postLikesRepository.updateLike({
         userId,
         postId,
-        userLogin: existing.userLogin,
         status: likeStatus,
         createdAt: new Date().toISOString(),
       });
@@ -51,7 +49,6 @@ export class UpdatePostLikeStatusUseCase
       const newLike: PostLikeSqlEntity = {
         postId,
         userId,
-        userLogin,
         status: likeStatus,
         createdAt: new Date().toISOString(),
       };

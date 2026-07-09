@@ -1,0 +1,57 @@
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
+import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
+import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
+import { BlogsRepository } from '../../infrastructure/blogs.repository';
+import { UpdatePostByBlogIdDto } from '../../../posts/dto/update-postByBlogId.dto';
+
+export class UpdatePostByBlogIdCommand {
+  constructor(
+    public readonly blogId: string,
+    public readonly postId: string,
+    public readonly input: UpdatePostByBlogIdDto,
+  ) {}
+}
+
+@CommandHandler(UpdatePostByBlogIdCommand)
+export class UpdatePostByBlogIdUseCase
+  implements ICommandHandler<UpdatePostByBlogIdCommand, void>
+{
+  constructor(
+    private readonly postsRepository: PostsRepository,
+    private readonly blogsRepository: BlogsRepository,
+  ) {}
+
+  async execute({
+    blogId,
+    postId,
+    input,
+  }: UpdatePostByBlogIdCommand): Promise<void> {
+    await this.blogsRepository.checkBlogExistsOrError(blogId);
+    // 1. Загружаем пост
+    const post = await this.postsRepository.findById(postId);
+    if (!post) {
+      throw new DomainException({
+        code: DomainExceptionCode.NotFound,
+        message: 'Post not found',
+      });
+    }
+    if (post.blogId !== blogId) {
+      throw new DomainException({
+        code: DomainExceptionCode.NotFound,
+        message: 'Post not found for this blog',
+      });
+    }
+    // 3. Обновляем поля
+    post.title = input.title;
+    post.shortDescription = input.shortDescription;
+    post.content = input.content;
+    post.blogId = blogId;
+
+    // 5. Обновляем updatedAt
+    post.updatedAt = new Date().toISOString();
+
+    // 6. Сохраняем
+    await this.postsRepository.updatePost(post);
+  }
+}

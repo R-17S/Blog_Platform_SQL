@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { NewestLikeViewModel } from '../../dto/newest-like-view-model';
 import {
   LikeStatusTypes,
-  PostViewModel,
+  PostViewModel, PostWithBlogNameSqlEntity,
 } from '../../api/view-dto/posts.view-dto';
 import { Pool } from 'pg';
 import { PostSqlEntity } from '../../domain/post.entity';
@@ -18,7 +18,7 @@ export class PostLikesQueryRepository {
     if (postIds.length === 0) return {};
 
     const result = await this.pool.query<{
-      postid: string;
+      postId: string;
       status: LikeStatusTypes;
     }>(
       `
@@ -31,7 +31,7 @@ export class PostLikesQueryRepository {
 
     const map: Record<string, LikeStatusTypes> = {};
     for (const row of result.rows) {
-      map[row.postid] = row.status;
+      map[row.postId] = row.status;
     }
     return map;
   }
@@ -42,16 +42,17 @@ export class PostLikesQueryRepository {
     if (postIds.length === 0) return {};
 
     const result = await this.pool.query<{
-      postid: string;
-      userid: string;
-      userlogin: string;
-      createdаt: string;
+      postId: string;
+      userId: string;
+      userLogin: string;
+      createdAt: string;
     }>(
       `
-          SELECT "postId", "userId", "userLogin", "createdAt"
-          FROM "PostLikes"
-          WHERE "postId" = ANY($1) AND "status" = 'Like'
-          ORDER BY "createdAt" DESC
+          SELECT pl."postId", pl."userId", u."login" AS "userLogin", pl."createdAt"
+          FROM "PostLikes" pl
+          INNER JOIN "Users" u ON pl."userId" = u.id
+          WHERE pl."postId" = ANY($1) AND pl."status" = 'Like'
+          ORDER BY pl."createdAt" DESC
       `,
       [postIds],
     );
@@ -59,13 +60,13 @@ export class PostLikesQueryRepository {
     const map: Record<string, NewestLikeViewModel[]> = {};
 
     for (const row of result.rows) {
-      if (!map[row.postid]) map[row.postid] = [];
+      if (!map[row.postId]) map[row.postId] = [];
 
-      if (map[row.postid].length < 3) {
-        map[row.postid].push({
-          userId: row.userid,
-          login: row.userlogin,
-          addedAt: new Date(row.createdаt),
+      if (map[row.postId].length < 3) {
+        map[row.postId].push({
+          userId: row.userId,
+          login: row.userLogin,
+          addedAt: new Date(row.createdAt),
         });
       }
     }
@@ -76,7 +77,7 @@ export class PostLikesQueryRepository {
   async getLikesCountForPosts(postIds: string[]) {
     if (postIds.length === 0) return {};
 
-    const result = await this.pool.query<{ postid: string; count: string }>(
+    const result = await this.pool.query<{ postId: string; count: string }>(
       `
       SELECT "postId", COUNT(*) AS count
       FROM "PostLikes"
@@ -88,7 +89,7 @@ export class PostLikesQueryRepository {
 
     const map: Record<string, number> = {};
     for (const row of result.rows) {
-      map[row.postid] = Number(row.count);
+      map[row.postId] = Number(row.count);
     }
     return map;
   }
@@ -96,7 +97,7 @@ export class PostLikesQueryRepository {
   async getDislikesCountForPosts(postIds: string[]) {
     if (postIds.length === 0) return {};
 
-    const result = await this.pool.query<{ postid: string; count: string }>(
+    const result = await this.pool.query<{ postId: string; count: string }>(
       `
       SELECT "postId", COUNT(*) AS count
       FROM "PostLikes"
@@ -108,12 +109,15 @@ export class PostLikesQueryRepository {
 
     const map: Record<string, number> = {};
     for (const row of result.rows) {
-      map[row.postid] = Number(row.count);
+      map[row.postId] = Number(row.count);
     }
     return map;
   }
 
-  async enrichPostsWithLikes(posts: PostSqlEntity[], userId?: string): Promise<PostViewModel[]> {
+  async enrichPostsWithLikes(
+    posts: PostWithBlogNameSqlEntity[],
+    userId?: string,
+  ): Promise<PostViewModel[]> {
     const postIds = posts.map((p) => p.id);
 
     const [statusesMap, newestLikesMap, likesCountMap, dislikesCountMap] =

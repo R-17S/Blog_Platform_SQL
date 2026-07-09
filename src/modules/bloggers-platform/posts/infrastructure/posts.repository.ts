@@ -74,11 +74,10 @@ export class PostsRepository {
       `
       INSERT INTO "Posts" (
         "id", "title", "shortDescription", "content",
-        "blogId", "blogName",
-        "likesCount", "dislikesCount",
+        "blogId", "likesCount", "dislikesCount",
         "createdAt", "updatedAt", "deletedAt"
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
       `,
       [
         post.id,
@@ -86,7 +85,6 @@ export class PostsRepository {
         post.shortDescription,
         post.content,
         post.blogId,
-        post.blogName,
         post.likesCount,
         post.dislikesCount,
         post.createdAt,
@@ -105,11 +103,10 @@ export class PostsRepository {
         "shortDescription" = $3,
         "content" = $4,
         "blogId" = $5,
-        "blogName" = $6,
-        "likesCount" = $7,
-        "dislikesCount" = $8,
-        "updatedAt" = $9,
-        "deletedAt" = $10
+        "likesCount" = $6,
+        "dislikesCount" = $7,
+        "updatedAt" = $8,
+        "deletedAt" = $9
       WHERE "id" = $1
       `,
       [
@@ -118,7 +115,6 @@ export class PostsRepository {
         post.shortDescription,
         post.content,
         post.blogId,
-        post.blogName,
         post.likesCount,
         post.dislikesCount,
         post.updatedAt,

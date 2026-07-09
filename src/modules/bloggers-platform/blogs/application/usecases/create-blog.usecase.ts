@@ -19,7 +19,7 @@ export class CreateBlogUseCase
       name: input.name,
       description: input.description,
       websiteUrl: input.websiteUrl,
-      isMembership: true,
+      isMembership: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       deletedAt: null,

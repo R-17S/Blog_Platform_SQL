@@ -47,17 +47,26 @@ export class BlogsQueryRepository {
     const sortDirection =
       params.sortDirection === SortDirection.Asc ? 'ASC' : 'DESC';
 
+    const stringFields = ['name', 'description', 'websiteUrl'];
+    const collation = stringFields.includes(sortBy) ? 'COLLATE "C"' : '';
+
     const offset = params.calculateSkip();
     const limit = params.pageSize;
 
-    const queryParams = [...values, params.pageSize, offset];
+    const queryParams = [...values];
+    queryParams.push(limit);
+    const limitPlaceholder = `$${queryParams.length}`;
+
+    queryParams.push(offset);
+    const offsetPlaceholder = `$${queryParams.length}`;
+
     const blogsResult = await this.pool.query<BlogSqlEntity>(
       `
       SELECT *
-      FROM "Blog"
+      FROM "Blogs"
       ${where}
-      ORDER BY "${sortBy}" ${sortDirection}
-      LIMIT ${limit} OFFSET ${offset}
+      ORDER BY "${sortBy}" ${collation} ${sortDirection}
+      LIMIT ${limitPlaceholder} OFFSET ${offsetPlaceholder}
       `,
       queryParams,
     );

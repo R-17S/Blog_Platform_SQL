@@ -17,8 +17,8 @@ export class PaginatedViewDto<T> {
       pagesCount: Math.ceil(data.totalCount / data.pageSize),
       page: data.page,
       pageSize: data.pageSize,
-      items: data.items,
       totalCount: data.totalCount,
+      items: data.items,
     };
   }
 }

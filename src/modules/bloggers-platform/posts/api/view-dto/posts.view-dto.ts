@@ -6,6 +6,10 @@ export enum LikeStatusTypes {
   Dislike = 'Dislike',
   None = 'None',
 }
+
+export type PostWithBlogNameSqlEntity = PostSqlEntity & {
+  blogName: string;
+};
 export class PostViewModel {
   id: string;
   title: string;
@@ -26,7 +30,7 @@ export class PostViewModel {
   };
 
   static mapToView(
-    post: PostSqlEntity,
+    post: PostWithBlogNameSqlEntity,
     myStatus: LikeStatusTypes,
     newestLikes: Array<{ addedAt: Date; userId: string; login: string }>,
     likesCount: number,

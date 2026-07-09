@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { Pool } from 'pg';
 
 export const pgPool = new Pool({
-  connectionString: process.env.DATABASE_URL_NEON,
+  connectionString: process.env.DATABASE_URL,
 });
 
 @Module({

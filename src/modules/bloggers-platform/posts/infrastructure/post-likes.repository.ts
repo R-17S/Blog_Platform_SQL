@@ -10,11 +10,11 @@ export class PostLikesRepository {
     await this.pool.query(
       `
       INSERT INTO "PostLikes" (
-        "userId", "postId", "userLogin", "status", "createdAt"
+        "userId", "postId", "status", "createdAt"
       )
-      VALUES ($1, $2, $3, $4, $5)
+      VALUES ($1, $2, $3, $4)
       `,
-      [like.userId, like.postId, like.userLogin, like.status, like.createdAt],
+      [like.userId, like.postId, like.status, like.createdAt],
     );
   }
 

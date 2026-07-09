@@ -5,7 +5,6 @@ export type PostSqlEntity = {
   content: string;
 
   blogId: string;
-  blogName: string;
 
   likesCount: number;
   dislikesCount: number;
