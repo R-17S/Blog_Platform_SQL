@@ -26,7 +26,6 @@ export class CreateCommentUseCase
     input,
     postId,
     userId,
-    userLogin,
   }: CreateCommentCommand): Promise<string> {
     // 1. Проверяем, что пост существует
     await this.postsRepository.checkPostExistsOrError(postId);
@@ -38,7 +37,6 @@ export class CreateCommentUseCase
       postId,
       content: input.content,
       userId,
-      userLogin,
       likesCount: 0,
       dislikesCount: 0,
       createdAt: now,

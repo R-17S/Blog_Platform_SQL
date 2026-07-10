@@ -6,6 +6,10 @@ export enum LikeStatusTypes {
   Dislike = 'Dislike',
   None = 'None',
 }
+
+export type CommentWithUserLoginSqlEntity = CommentSqlEntity & {
+  userLogin: string;
+};
 export class CommentViewModel {
   id: string;
   content: string;
@@ -21,7 +25,7 @@ export class CommentViewModel {
   };
 
   static mapToView(
-    comment: CommentSqlEntity,
+    comment: CommentWithUserLoginSqlEntity,
     myStatus: LikeStatusTypes,
     likesCount: number,
     dislikesCount: number,

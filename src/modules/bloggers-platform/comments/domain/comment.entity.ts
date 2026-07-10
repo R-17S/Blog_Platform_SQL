@@ -4,7 +4,6 @@ export type CommentSqlEntity = {
   content: string;
 
   userId: string;
-  userLogin: string;
 
   likesCount: number;
   dislikesCount: number;

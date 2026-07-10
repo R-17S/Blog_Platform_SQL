@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   CommentsViewPaginated,
   CommentViewModel,
+  CommentWithUserLoginSqlEntity,
   LikeStatusTypes,
 } from '../../api/view-dto/comments.view-dto';
 import { CommentLikesQueryRepository } from './comments.likes.query-repository';
@@ -9,7 +10,6 @@ import { CommentInputQuery } from '../../api/input-dto/get-comments-query-params
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { Pool } from 'pg';
-import { CommentSqlEntity } from '../../domain/comment.entity';
 import { SortDirection } from '../../../../../core/dto/base.query-params.input-dto';
 
 @Injectable()
@@ -23,11 +23,12 @@ export class CommentsQueryRepository {
     id: string,
     userId?: string,
   ): Promise<CommentViewModel> {
-    const result = await this.pool.query<CommentSqlEntity>(
+    const result = await this.pool.query<CommentWithUserLoginSqlEntity>(
       `
-      SELECT *
-      FROM "Comments"
-      WHERE "id" = $1 AND "deletedAt" IS NULL
+      SELECT c.*, u.login AS "userLogin"
+      FROM "Comments" c
+      INNER JOIN "Users" u ON c."userId" = u.id
+      WHERE c."id" = $1 AND c."deletedAt" IS NULL
       `,
       [id],
     );
@@ -83,20 +84,36 @@ export class CommentsQueryRepository {
     );
     const totalCount = Number(totalCountResult.rows[0].count);
 
-    const allowedSortBy = ['id', 'content', 'createdAt', 'userId', 'userLogin'];
+    const allowedSortBy = [
+      'id',
+      'content',
+      'createdAt',
+      'userId',
+      'likesCount',
+      'dislikesCount',
+      'createdAt',
+    ];
     const sortBy = allowedSortBy.includes(params.sortBy)
       ? params.sortBy
       : 'createdAt';
     const sortDirection =
       params.sortDirection === SortDirection.Asc ? 'ASC' : 'DESC';
 
+    let orderByClause = '';
+    if (sortBy === 'userLogin') {
+      orderByClause = `u.login ${sortDirection}`; // Сортируем по полю login из таблицы Users
+    } else {
+      orderByClause = `c."${sortBy}" ${sortDirection}`; // Сортируем по полям из таблицы Comments
+    }
+
     // 2. сами комментарии
-    const commentsResult = await this.pool.query<CommentSqlEntity>(
+    const commentsResult = await this.pool.query<CommentWithUserLoginSqlEntity>(
       `
-      SELECT *
-      FROM "Comments"
-      WHERE "postId" = $1 AND "deletedAt" IS NULL
-      ORDER BY "${sortBy}" ${sortDirection}
+      SELECT c.*, u.login AS "userLogin"
+      FROM "Comments" c
+      INNER JOIN "Users" u ON c."userId" = u.id
+      WHERE c."postId" = $1 AND c."deletedAt" IS NULL
+      ORDER BY ${orderByClause}
       LIMIT $2 OFFSET $3
       `,
       [postId, pageSize, offset],

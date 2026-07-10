@@ -13,17 +13,16 @@ export class CommentsRepository {
       `
       INSERT INTO "Comments" (
         "id", "postId", "content",
-        "userId", "userLogin", "likesCount", "dislikesCount",
+        "userId", "likesCount", "dislikesCount",
         "createdAt", "updatedAt", "deletedAt"
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
       `,
       [
         comment.id,
         comment.postId,
         comment.content,
         comment.userId,
-        comment.userLogin,
         comment.likesCount,
         comment.dislikesCount,
         comment.createdAt,
@@ -39,7 +38,7 @@ export class CommentsRepository {
       UPDATE "Comments"
       SET
         "content" = $2,
-        "updatedAt" = $3,
+        "updatedAt" = $3
       WHERE "id" = $1
       `,
       [

@@ -78,7 +78,7 @@ export class PostsController {
     return await this.commentsQueryRepository.getCommentsByPostId(
       postId,
       query,
-      user.id,
+      user?.id,
     );
   }
 

@@ -37,7 +37,7 @@ export class PostsQueryRepository {
       ? params.sortBy
       : 'createdAt';
 
-    const orderByColumn = sortBy === 'blogName' ? `b.name` : `p."${sortBy}"`;
+    // const orderByColumn = sortBy === 'blogName' ? `b.name` : `p."${sortBy}"`;
 
     const sortDirection =
       params.sortDirection === SortDirection.Asc ? 'ASC' : 'DESC';
@@ -50,11 +50,10 @@ export class PostsQueryRepository {
     const totalCount = Number(totalCountResult.rows[0].count);
 
     const query = `
-      SELECT p.*, b.name AS "blogName"
-      FROM "Posts" p
-      INNER JOIN "Blogs" b ON p."blogId" = b.id
+      SELECT *
+      FROM "v_posts_with_blog_name"
       WHERE ${filter}
-      ORDER BY ${orderByColumn} ${sortDirection}
+      ORDER BY ${sortBy} ${sortDirection}
       LIMIT $1 OFFSET $2
     `;
 
@@ -84,9 +83,8 @@ export class PostsQueryRepository {
   ): Promise<PostViewModel> {
     const result = await this.pool.query<PostWithBlogNameSqlEntity>(
       `
-        SELECT p.*, b.name AS "blogName"
-        FROM "Posts" p
-        INNER JOIN "Blogs" b ON p."blogId" = b.id
+        SELECT *
+        FROM "v_posts_with_blog_name"
         WHERE p."id" = $1 AND p."deletedAt" IS NULL
       `,
       [id],
@@ -118,14 +116,14 @@ export class PostsQueryRepository {
     const offset = params.calculateSkip();
 
     const totalCountResult = await this.pool.query<{ count: string }>(
-        `
+      `
       SELECT COUNT(*)
       FROM "Posts" p
       WHERE ${filter}
       `,
-        [id],
-      );
-      const totalCount = Number(totalCountResult.rows[0].count);
+      [id],
+    );
+    const totalCount = Number(totalCountResult.rows[0].count);
 
     const allowedSortBy = [
       'id',
@@ -144,12 +142,11 @@ export class PostsQueryRepository {
     // получение самих постов с пагинацией и сортировкой
     const postsResult = await this.pool.query<PostWithBlogNameSqlEntity>(
       `
-        SELECT p.*, b.name AS "blogName" 
-        FROM "Posts" p
-        INNER JOIN "Blogs" b ON p."blogId" = b.id
+        SELECT *
+        FROM "v_posts_with_blog_name"
         WHERE ${filter}
         ORDER BY p."${sortBy}" ${sortDirection} 
-      LIMIT $2 OFFSET $3
+        LIMIT $2 OFFSET $3
       `,
       [id, pageSize, offset],
     );
