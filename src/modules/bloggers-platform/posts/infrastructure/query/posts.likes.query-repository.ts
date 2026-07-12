@@ -2,10 +2,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import { NewestLikeViewModel } from '../../dto/newest-like-view-model';
 import {
   LikeStatusTypes,
-  PostViewModel, PostWithBlogNameSqlEntity,
+  PostViewModel,
+  PostWithBlogNameSqlEntity,
 } from '../../api/view-dto/posts.view-dto';
 import { Pool } from 'pg';
-import { PostSqlEntity } from '../../domain/post.entity';
 
 @Injectable()
 export class PostLikesQueryRepository {
@@ -74,6 +74,54 @@ export class PostLikesQueryRepository {
     return map;
   }
 
+  async getNewestLikesForPosts_CTE(
+    postIds: string[],
+  ): Promise<Record<string, NewestLikeViewModel[]>> {
+    if (postIds.length === 0) return {};
+    const result = await this.pool.query<{
+      postId: string;
+      userId: string;
+      userLogin: string;
+      createdAt: Date;
+    }>(
+      `
+       WITH "RankedLikes" AS ( --создаём временную таблицу 
+       SELECT
+         pl.userId,
+         pl.postId,
+         u."login" AS "userLogin",
+         pl.createdAt,
+         ROW_NUMBER () OVER ( --Присваиваем каждому лайку порядковый номер (1, 2, 3...) внутри его группы
+           PARTITION BY pl."postId" --оконная функция которая разбивет всю таблицу лайков на изолир группы по индификатору (postId)
+           ORDER BY pl."createdAt" DESC
+           --тут просто сортируем по свежести
+           ) AS rn
+         FROM "PostLikes" pl
+         INNER JOIN "Users" u ON pl."userId" = u.id
+         WHERE pl."postId" = ANY ($1) AND pl."status" = 'Like'
+         )
+       -- Забираем только те лайки, у которых порядковый номер (rn) в рамках поста меньше или равен 3
+       SELECT "postId", "userId", "userLogin", "createdAt"
+       FROM "RankedLikes"
+       WHERE rn<=3 -- выбрасывает лишнее 
+       ORDER BY "postId", "createdAt" DESC
+       `,
+      [postIds],
+    );
+    const map: Record<string, NewestLikeViewModel[]> = {};
+
+    for (const row of result.rows) {
+      if (!map[row.postId]) map[row.postId] = [];
+      map[row.postId].push({
+        userId: row.userId,
+        login: row.userLogin,
+        addedAt: new Date(row.createdAt),
+      });
+    }
+
+    return map;
+  }
+
   async getLikesCountForPosts(postIds: string[]) {
     if (postIds.length === 0) return {};
 
@@ -123,7 +171,7 @@ export class PostLikesQueryRepository {
     const [statusesMap, newestLikesMap, likesCountMap, dislikesCountMap] =
       await Promise.all([
         userId ? this.getStatusesForPosts(userId, postIds) : {},
-        this.getNewestLikesForPosts(postIds),
+        this.getNewestLikesForPosts_CTE(postIds),
         this.getLikesCountForPosts(postIds),
         this.getDislikesCountForPosts(postIds),
       ]);

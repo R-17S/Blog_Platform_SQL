@@ -25,9 +25,8 @@ export class CommentsQueryRepository {
   ): Promise<CommentViewModel> {
     const result = await this.pool.query<CommentWithUserLoginSqlEntity>(
       `
-      SELECT c.*, u.login AS "userLogin"
-      FROM "Comments" c
-      INNER JOIN "Users" u ON c."userId" = u.id
+      SELECT *
+      FROM "v_comments_with_user_login"
       WHERE c."id" = $1 AND c."deletedAt" IS NULL
       `,
       [id],
@@ -109,9 +108,8 @@ export class CommentsQueryRepository {
     // 2. сами комментарии
     const commentsResult = await this.pool.query<CommentWithUserLoginSqlEntity>(
       `
-      SELECT c.*, u.login AS "userLogin"
-      FROM "Comments" c
-      INNER JOIN "Users" u ON c."userId" = u.id
+      SELECT *
+      FROM "v_comments_with_user_login"
       WHERE c."postId" = $1 AND c."deletedAt" IS NULL
       ORDER BY ${orderByClause}
       LIMIT $2 OFFSET $3
