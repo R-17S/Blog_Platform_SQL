@@ -59,11 +59,6 @@ export class CoreConfig {
     });
     this.port = Number(this.configService.get('PORT'));
     this.sqlURI = this.configService.get('DATABASE_URL');
-    console.log(
-      'DATABASE_URL from configService:',
-      this.configService.get('DATABASE_URL'),
-    );
-    console.log('DATABASE_URL from process.env:', process.env.DATABASE_URL);
     this.accessTokenSecret = this.configService.get('ACCESS_TOKEN_SECRET');
     this.refreshTokenSecret = this.configService.get('REFRESH_TOKEN_SECRET');
     console.log(

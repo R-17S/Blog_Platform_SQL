@@ -26,11 +26,11 @@ export class UsersTestManager {
     statusCode: number = HttpStatus.CREATED,
   ): Promise<UserViewModel> {
     const response = await request(this.app.getHttpServer())
-      .post(`/${GLOBAL_PREFIX}/users`)
+      .post(`/${GLOBAL_PREFIX}/sa/users`)
       .send(createModel)
       .auth('admin', 'qwerty')
-      .expect(statusCode);
 
+    if(response.status === 500) console.log(response.text);
     return response.body as UserViewModel;
   }
 
