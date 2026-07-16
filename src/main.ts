@@ -13,6 +13,6 @@ async function bootstrap() {
   const coreConfig = app.get(CoreConfig);
   appSetup(app);
   await app.listen(coreConfig.port);
+  console.log('✅ Оно работает, можно пока прочитать молитву духу машины');
 }
 bootstrap();
-console.log('✅ Оно работает, можно пока прочитать молитву духу машины');

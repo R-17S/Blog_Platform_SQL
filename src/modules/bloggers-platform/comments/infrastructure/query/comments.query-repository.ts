@@ -26,7 +26,7 @@ export class CommentsQueryRepository {
     const result = await this.pool.query<CommentWithUserLoginSqlEntity>(
       `
       SELECT *
-      FROM "v_comments_with_user_login"
+      FROM "v_comments_with_user_login" c
       WHERE c."id" = $1 AND c."deletedAt" IS NULL
       `,
       [id],
@@ -109,7 +109,7 @@ export class CommentsQueryRepository {
     const commentsResult = await this.pool.query<CommentWithUserLoginSqlEntity>(
       `
       SELECT *
-      FROM "v_comments_with_user_login"
+      FROM "v_comments_with_user_login" c
       WHERE c."postId" = $1 AND c."deletedAt" IS NULL
       ORDER BY ${orderByClause}
       LIMIT $2 OFFSET $3

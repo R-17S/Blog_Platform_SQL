@@ -82,7 +82,7 @@ export class BlogsRepository {
       `
       SELECT 1
       FROM "Blogs"
-      WHERE id = $1 AND "deletedAt"  IS NULL
+      WHERE "id" = $1 AND "deletedAt"  IS NULL
       `,
       [id],
     );

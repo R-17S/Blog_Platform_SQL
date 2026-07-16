@@ -37,7 +37,6 @@ export class PostsQueryRepository {
       ? params.sortBy
       : 'createdAt';
 
-    // const orderByColumn = sortBy === 'blogName' ? `b.name` : `p."${sortBy}"`;
 
     const sortDirection =
       params.sortDirection === SortDirection.Asc ? 'ASC' : 'DESC';
@@ -51,9 +50,9 @@ export class PostsQueryRepository {
 
     const query = `
       SELECT *
-      FROM "v_posts_with_blog_name"
+      FROM "v_posts_with_blog_name" p
       WHERE ${filter}
-      ORDER BY ${sortBy} ${sortDirection}
+      ORDER BY p."${sortBy}" ${sortDirection}
       LIMIT $1 OFFSET $2
     `;
 
@@ -84,7 +83,7 @@ export class PostsQueryRepository {
     const result = await this.pool.query<PostWithBlogNameSqlEntity>(
       `
         SELECT *
-        FROM "v_posts_with_blog_name"
+        FROM "v_posts_with_blog_name" p
         WHERE p."id" = $1 AND p."deletedAt" IS NULL
       `,
       [id],
@@ -143,7 +142,7 @@ export class PostsQueryRepository {
     const postsResult = await this.pool.query<PostWithBlogNameSqlEntity>(
       `
         SELECT *
-        FROM "v_posts_with_blog_name"
+        FROM "v_posts_with_blog_name" p
         WHERE ${filter}
         ORDER BY p."${sortBy}" ${sortDirection} 
         LIMIT $2 OFFSET $3

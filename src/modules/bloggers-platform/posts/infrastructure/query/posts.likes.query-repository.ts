@@ -87,10 +87,10 @@ export class PostLikesQueryRepository {
       `
        WITH "RankedLikes" AS ( --создаём временную таблицу 
        SELECT
-         pl.userId,
-         pl.postId,
+         pl."userId",
+         pl."postId",
          u."login" AS "userLogin",
-         pl.createdAt,
+         pl."createdAt",
          ROW_NUMBER () OVER ( --Присваиваем каждому лайку порядковый номер (1, 2, 3...) внутри его группы
            PARTITION BY pl."postId" --оконная функция которая разбивет всю таблицу лайков на изолир группы по индификатору (postId)
            ORDER BY pl."createdAt" DESC

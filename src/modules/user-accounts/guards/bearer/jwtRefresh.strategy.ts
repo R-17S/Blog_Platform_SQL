@@ -12,11 +12,9 @@ export class JwtRefreshStrategy extends PassportStrategy(
   'jwt-refresh',
 ) {
   constructor(
-    //@Inject(REFRESH_TOKEN_STRATEGY_INJECT_TOKEN)
     private readonly authService: AuthService,
     private readonly coreConfig: CoreConfig,
   ) {
-    console.log('🔥 [Strategy] I AM LOADED');
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (req: Request) => {
@@ -46,22 +44,8 @@ export class JwtRefreshStrategy extends PassportStrategy(
     req: Request,
     payload: UserCookiesDto,
   ): Promise<UserCookiesDto> {
-    //const token = req.cookies?.refreshToken;
-    console.log('🔥 [Strategy] cookies:', req.cookies);
-    console.log('🔥 [Strategy] payload:', payload);
-    // const now = Math.floor(Date.now() / 1000);
-    //
-    // if (payload.exp < now) {
-    //   console.log('🔥 Token expired');
-    //   throw new DomainException({
-    //     code: DomainExceptionCode.Unauthorized,
-    //     message: 'Refresh token expired',
-    //     extensions: [{ key: 'payload.exp', message: 'Refresh token expired' }],
-    //   });
-    // }
     await this.authService.checkRefreshToken(payload.deviceId, payload.iat);
     // payload содержит id и deviceId
-    //return { payload, token };
     return payload;
   }
 }
